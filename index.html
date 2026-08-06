@@ -545,7 +545,7 @@
     outline-offset: 2px;
     background: var(--accent-soft);
   }
-  #btn-copy, #btn-edit-narrative, #btn-reset-narrative { margin-top: 8px; margin-right: 6px; }
+  #btn-refresh-narrative, #btn-copy, #btn-edit-narrative, #btn-reset-narrative { margin-top: 8px; margin-right: 6px; }
 
   /* ---------- activity log ---------- */
   .actgroup {
@@ -933,6 +933,7 @@
     </div>
     <p class="legend no-print"><strong>How to fill up:</strong> nothing &mdash; this writes itself from every entry above as you make it. Click Edit to rewrite it by hand; Copy it once the sheet is complete.</p>
     <div class="narrative" id="narrative-out"></div>
+    <button class="btn no-print" id="btn-refresh-narrative">Refresh narrative</button>
     <button class="btn no-print" id="btn-copy">Copy narrative</button>
     <button class="btn no-print" id="btn-edit-narrative">Edit narrative</button>
     <button class="btn no-print" id="btn-reset-narrative" hidden>Reset to auto-generated</button>
@@ -2659,6 +2660,20 @@
     el("btn-reset-narrative").hidden = true;
     renderNarrative();
     save(true);
+  });
+
+  el("btn-refresh-narrative").addEventListener("click", function () {
+    if (narrativeEdited) {
+      if (!window.confirm("This narrative has been hand-edited. Refresh will discard those edits and regenerate it from the sheet. Continue?")) { return; }
+      narrativeEdited = false;
+      el("narrative-out").removeAttribute("contenteditable");
+      el("btn-edit-narrative").textContent = "Edit narrative";
+      el("btn-reset-narrative").hidden = true;
+    }
+    compute();
+    var btn = el("btn-refresh-narrative");
+    btn.textContent = "Refreshed";
+    setTimeout(function () { btn.textContent = "Refresh narrative"; }, 1200);
   });
 
   el("btn-copy").addEventListener("click", function () {
