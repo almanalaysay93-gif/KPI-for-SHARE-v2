@@ -323,6 +323,16 @@
     margin-left: auto;
     white-space: nowrap;
   }
+  .print-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font: 400 8.5px/1 var(--mono);
+    color: var(--ink-3);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .print-toggle input { width: 11px; height: 11px; margin: 0; }
 
   .legend {
     font-size: 10px;
@@ -356,6 +366,11 @@
   }
   td.num, th.num { text-align: center; }
   .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* denser rows, full-width columns - used on the Weekly/Monthly and
+     Citizen's Charter tables to cut their footprint on the printed page */
+  .table-compact th { padding: 0 3px 3px; }
+  .table-compact td { padding: 1.5px 3px; font-size: 10.5px; }
 
   /* ---------- category grouping (12 RN responsibilities) ---------- */
   .cathead-row td {
@@ -634,6 +649,7 @@
     tr[data-empty="1"] { display: none; }
     .cathead[data-empty="1"] { display: none; }
     #sec-others[data-empty="1"] { display: none; }
+    .sec:has(> .sechead .print-toggle input:not(:checked)) { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -758,17 +774,18 @@
     <div class="sechead">
       <h2>Weekly &amp; monthly update &mdash; POMD Referral Master</h2>
       <span class="src" id="wm-period">mirrors the Weekly Update and Monthly Update tabs</span>
+      <label class="print-toggle no-print"><input type="checkbox" id="wm-print-toggle" checked>Print</label>
     </div>
     <p class="legend no-print"><strong>How to fill up:</strong> nothing, usually &mdash; this refreshes itself hourly from the Sheet&#39;s Weekly Update and Monthly Update tabs. Type over a number by hand if you need to correct it before the next refresh.</p>
     <p class="imp-status no-print" id="wm-fetch-status">Not yet checked.</p>
     <button class="btn no-print" id="btn-wm-refresh" style="margin:0 0 8px">Refresh now</button>
-    <table>
+    <table class="table-compact">
       <thead>
         <tr>
           <th>Measure</th>
-          <th class="num" style="width:18%" id="wm-th-week">This week</th>
-          <th class="num" style="width:18%" id="wm-th-month">This month</th>
-          <th class="num" style="width:16%">2026 YTD</th>
+          <th class="num" style="width:12%" id="wm-th-week">This week</th>
+          <th class="num" style="width:12%" id="wm-th-month">This month</th>
+          <th class="num" style="width:11%">2026 YTD</th>
         </tr>
       </thead>
       <tbody id="wm-body"></tbody>
@@ -846,15 +863,16 @@
     <div class="sechead">
       <h2>Citizen&#39;s Charter services delivered</h2>
       <span class="src">OTSU Citizens Charter 2026 &middot; office hours 7:00 AM&ndash;3:00 PM, Mon&ndash;Fri</span>
+      <label class="print-toggle no-print"><input type="checkbox" id="charter-print-toggle" checked>Print</label>
     </div>
     <p class="legend no-print"><strong>How to fill up:</strong> for each service delivered today, enter clients served and how many HCES survey forms were issued.</p>
-    <table>
+    <table class="table-compact">
       <thead>
         <tr>
           <th>Service</th>
-          <th class="num" style="width:13%">Charter time</th>
-          <th class="num" style="width:12%">Clients served</th>
-          <th class="num" style="width:13%">HCES forms issued</th>
+          <th class="num" style="width:10%">Charter time</th>
+          <th class="num" style="width:9%">Clients served</th>
+          <th class="num" style="width:9%">HCES forms issued</th>
         </tr>
       </thead>
       <tbody id="charter-body"></tbody>
