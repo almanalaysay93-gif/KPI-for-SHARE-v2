@@ -383,6 +383,7 @@
     background: var(--field, transparent);
   }
   .cathead-row:first-child td { padding-top: 3px; }
+  .cat-addrow td { padding: 4px 4px 10px; border-bottom: 0; }
   .cathead {
     grid-column: 1 / -1;
     padding: 7px 0 3px;
@@ -896,7 +897,7 @@
       <h2>Daily routine</h2>
       <span class="src">OTSU Calendar of Activities, &ldquo;Daily Routine&rdquo; &middot; std min entered by coordinator, not a published schedule</span>
     </div>
-    <p class="legend no-print"><strong>How to fill up:</strong> for each task worked today, enter standard minutes and a count, and the time started. Subtotal and Ended calculate automatically once both are entered, whatever the status. Use &ldquo;+ Add routine&rdquo; below for anything not on the list.</p>
+    <p class="legend no-print"><strong>How to fill up:</strong> for each task worked today, enter standard minutes and a count, and the time started. Subtotal and Ended calculate automatically once both are entered, whatever the status. Each category has its own &ldquo;+ Add routine&rdquo; for anything not on the list.</p>
     <table>
       <thead>
         <tr>
@@ -911,7 +912,6 @@
       </thead>
       <tbody id="routine-body"></tbody>
     </table>
-    <button class="btn no-print" id="btn-add-routine" style="margin-top:8px">+ Add routine</button>
     <button class="btn no-print" id="btn-show-hidden-routines" style="margin-top:8px;margin-left:8px" hidden>Show removed rows (0)</button>
   </section>
 
@@ -1492,26 +1492,39 @@
   /* rows render grouped under their category heading, but every row keeps
      its original data-routine index - only visual order changes, so
      hideRoutine/removeCustomRoutine/save-load (attribute-keyed) still work */
+  function addRoutineRowHtml(cat) {
+    return "<tr class='cat-addrow no-print' data-cat-add='" + cat + "'><td colspan='7'>" +
+      "<button type='button' class='btn' data-add-routine-cat='" + cat + "'>+ Add routine</button>" +
+      "</td></tr>";
+  }
+
+  /* every category renders - even ones with no fixed OTSU task - so there
+     is always somewhere to add a custom routine under any responsibility */
   function buildRoutine() {
     var html = "";
     CATEGORY_LABELS.forEach(function (label, cat) {
       var idxs = [];
       ROUTINE.forEach(function (r, i) { if (ROUTINE_CATEGORY[i] === cat) { idxs.push(i); } });
-      if (!idxs.length) { return; }
       html += "<tr class='cathead-row'><td colspan='7'>" + esc(label) + "</td></tr>";
       idxs.forEach(function (i) { html += routineRowHtml(i); });
+      html += addRoutineRowHtml(cat);
     });
     el("routine-body").innerHTML = html;
   }
 
-  /* coordinator-added rows, appended after the fixed OTSU list rather than
-     rebuilding the table, so already-entered data on other rows survives */
+  /* coordinator-added rows, inserted just above their category's own
+     "+ Add routine" trigger row rather than rebuilding the table, so
+     already-entered data on other rows survives. Each one remembers its
+     category (CUSTOM_ROUTINE_CAT) so the narrative report can group it
+     with that category instead of the catch-all "Additional tasks" */
   var customRoutineCount = 0;
+  var CUSTOM_ROUTINE_CAT = {};
 
-  function addCustomRoutine(name) {
+  function addCustomRoutine(name, cat) {
     var i = ROUTINE.length + customRoutineCount;
     customRoutineCount++;
-    el("routine-body").insertAdjacentHTML("beforeend",
+    if (cat !== undefined && cat !== null) { CUSTOM_ROUTINE_CAT[i] = cat; }
+    var html =
       "<tr data-custom='1'>" +
         "<td class='routine-name-cell'>" +
           "<input type='text' data-r='name' class='routine-name-input' placeholder='Task name' value='" + esc(name || "") + "'>" +
@@ -1525,7 +1538,17 @@
         "<td><select class='status' data-routine='" + i + "' data-s=''>" + options(STATUSES) + "</select></td>" +
       "</tr>" +
       "<tr class='narr-row' data-narr-routine='" + i + "' hidden><td colspan='7' style='border-bottom:1px solid var(--rule);padding:0'>" +
-        "<div class='narr' style='margin-left:4px'></div></td></tr>");
+        "<div class='narr' style='margin-left:4px'></div></td></tr>";
+
+    var anchor = (cat !== undefined && cat !== null)
+      ? document.querySelector("tr.cat-addrow[data-cat-add='" + cat + "']")
+      : null;
+    if (anchor) {
+      anchor.insertAdjacentHTML("beforebegin", html);
+    } else {
+      el("routine-body").insertAdjacentHTML("beforeend", html);
+    }
+    return i;
   }
 
   /* fixed OTSU rows can't be deleted from the DOM without shifting every
@@ -1562,6 +1585,7 @@
     var narrRow = document.querySelector("[data-narr-routine='" + i + "']");
     if (row) { row.remove(); }
     if (narrRow) { narrRow.remove(); }
+    delete CUSTOM_ROUTINE_CAT[i];
   }
 
   /* switching dates re-runs apply() against the same DOM, so any
@@ -1575,6 +1599,7 @@
       if (i >= ROUTINE.length) { row.remove(); }
     });
     customRoutineCount = 0;
+    CUSTOM_ROUTINE_CAT = {};
   }
 
   function buildAdmin() {
@@ -2031,7 +2056,8 @@
         holder.querySelector(".narr").textContent = combined;
       }
 
-      var cat = ROUTINE_CATEGORY[i]; // undefined for coordinator-added custom rows
+      var cat = ROUTINE_CATEGORY[i]; // fixed rows
+      if (cat === undefined) { cat = CUSTOM_ROUTINE_CAT[i]; } // custom rows added via a category's own button
 
       if (cat === undefined) {
         if (phrase && !isPrep && extraGroups[sel.value]) { extraGroups[sel.value].push(phrase); }
@@ -2177,6 +2203,7 @@
       var node = head.nextElementSibling, anyVisible = false;
       while (node && !node.classList.contains("cathead-row")) {
         if (node.tagName === "TR" && !node.classList.contains("narr-row") &&
+            !node.classList.contains("cat-addrow") &&
             node.getAttribute("data-empty") !== "1" && !node.classList.contains("routine-hidden")) {
           anyVisible = true;
         }
@@ -2356,6 +2383,7 @@
       };
       if (row.hasAttribute("data-custom")) {
         entry.name = row.querySelector("[data-r=name]").value;
+        if (CUSTOM_ROUTINE_CAT[i] !== undefined) { entry.cat = CUSTOM_ROUTINE_CAT[i]; }
       }
       if (row.classList.contains("routine-hidden")) {
         entry.hidden = true;
@@ -2416,7 +2444,7 @@
     var savedExtra = (data.routine || []).length - ROUTINE.length;
     for (var k = 0; k < savedExtra; k++) {
       var savedEntry = data.routine[ROUTINE.length + k];
-      addCustomRoutine(savedEntry && savedEntry.name ? savedEntry.name : "");
+      addCustomRoutine(savedEntry && savedEntry.name ? savedEntry.name : "", savedEntry && savedEntry.cat);
     }
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-routine]"), function (sel) {
@@ -2553,14 +2581,16 @@
     input.value = "";
   });
 
-  el("btn-add-routine").addEventListener("click", function () {
-    addCustomRoutine("");
-    compute();
-    var inputs = document.querySelectorAll(".routine-name-input");
-    if (inputs.length) { inputs[inputs.length - 1].focus(); }
-  });
-
   document.addEventListener("click", function (e) {
+    var addCatBtn = e.target.closest("[data-add-routine-cat]");
+    if (addCatBtn) {
+      var cat = parseInt(addCatBtn.getAttribute("data-add-routine-cat"), 10);
+      var newIdx = addCustomRoutine("", cat);
+      compute();
+      var newInput = document.querySelector("[data-remove-routine='" + newIdx + "']").closest("td").querySelector(".routine-name-input");
+      if (newInput) { newInput.focus(); }
+      return;
+    }
     var removeBtn = e.target.closest("[data-remove-routine]");
     if (removeBtn) {
       removeCustomRoutine(parseInt(removeBtn.getAttribute("data-remove-routine"), 10));
