@@ -1,0 +1,2655 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Printable daily KPI and activity monitoring sheet for the SHARE transplant coordinator, SPMC Organ Transplant Services Unit.">
+<title>SHARE TC Daily KPI Dashboard</title>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
+</head>
+<body>
+<style>
+  :root {
+    color-scheme: light;
+    --paper:#ffffff;
+    --band:#f2f6f7;
+    --ink:#14181c;
+    --ink-2:#4a5560;
+    --ink-3:#75828e;
+    --rule:#d3dae0;
+    --rule-strong:#9dabb6;
+    --accent:#0f6b5c;
+    --accent-soft:#e4f1ed;
+    --ok:#14724f;
+    --warn:#8a5806;
+    --crit:#a3232a;
+    --field:#fbfdfd;
+
+    /* one font everywhere - --serif and --mono kept as aliases so every
+       existing usage site (letterhead, tabular numbers, code) still works
+       without individually editing each rule */
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --serif: var(--sans);
+    --mono: var(--sans);
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --paper:#ffffff;
+    --band:#f2f6f7;
+    --ink:#14181c;
+    --ink-2:#4a5560;
+    --ink-3:#75828e;
+    --rule:#d3dae0;
+    --rule-strong:#9dabb6;
+    --accent:#0f6b5c;
+    --accent-soft:#e4f1ed;
+    --ok:#14724f;
+    --warn:#8a5806;
+    --crit:#a3232a;
+    --field:#fbfdfd;
+  }
+
+  body {
+    background: var(--band);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.45;
+    margin: 0;
+    padding: 24px 16px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    max-width: 8.5in;
+    margin: 0 auto 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .spacer { flex: 1 1 auto; }
+  .btn {
+    font: 600 11px/1 var(--sans);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    padding: 9px 13px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.08); color: #fff; }
+  .saved-note {
+    font: 500 11px/1 var(--mono);
+    color: var(--ink-3);
+    letter-spacing: .02em;
+  }
+
+  /* ---------- POMD import panel ---------- */
+  .importer {
+    max-width: 8.5in;
+    margin: 0 auto 16px;
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    padding: 12px 14px 13px;
+  }
+  .importer summary {
+    font: 700 10px/1 var(--sans);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: pointer;
+    list-style: none;
+  }
+  .importer summary::-webkit-details-marker { display: none; }
+  .importer summary::before { content: "\25B8  "; }
+  .importer[open] summary::before { content: "\25BE  "; }
+  .importer .how {
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    margin: 9px 0 8px;
+  }
+  .importer .how code {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    background: var(--band);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  .importer textarea {
+    min-height: 84px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .imp-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-top: 9px;
+  }
+  .imp-controls .opt {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .imp-controls input[type="radio"] { accent-color: var(--accent); margin: 0; }
+  .imp-status {
+    font: 500 11px/1.45 var(--mono);
+    color: var(--ink-3);
+    margin-top: 9px;
+    min-height: 15px;
+  }
+  .imp-status.good { color: var(--ok); }
+  .imp-status.bad { color: var(--crit); }
+  .imp-privacy {
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--ink-3);
+    border-left: 2px solid var(--rule-strong);
+    padding-left: 8px;
+    margin-top: 10px;
+  }
+
+  /* ---------- the sheet ---------- */
+  .sheet {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0 auto 22px;
+    padding: 0.45in 0.5in 0.5in;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 32px rgba(10,20,30,.09);
+    box-sizing: border-box;
+  }
+
+  /* ---------- letterhead ---------- */
+  .letterhead {
+    text-align: center;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 7px;
+  }
+  .letterhead .rep {
+    font-family: var(--serif);
+    font-size: 10.5px;
+    line-height: 1.35;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .letterhead .org {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    margin: 1px 0 0;
+  }
+  .letterhead .unit {
+    font-family: var(--sans);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .19em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 4px 0 0;
+  }
+
+  .doctitle {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--rule);
+    padding: 7px 0 8px;
+  }
+  .doctitle h1 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .015em;
+    margin: 0;
+  }
+  .doctitle .meta {
+    font: 500 9.5px/1.3 var(--mono);
+    color: var(--ink-3);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* ---------- identity strip ---------- */
+  .identity {
+    display: grid;
+    grid-template-columns: 1.15fr 1.5fr 1.35fr;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .idcell { padding: 8px 12px 9px 0; }
+  .idcell + .idcell { padding-left: 12px; border-left: 1px solid var(--rule); }
+
+  .lbl {
+    display: block;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+
+  input[type="text"], input[type="date"], input[type="number"], input[type="time"], select, textarea {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--field);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 4px 6px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  input[type="number"], input[type="date"], input[type="time"] {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    border-color: var(--accent);
+  }
+  input[type="number"] { text-align: center; -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .roleset { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
+  .roleset label {
+    flex: 1 1 0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-align: center;
+    padding: 5px 2px;
+    cursor: pointer;
+    background: var(--field);
+    color: var(--ink-2);
+    border-right: 1px solid var(--rule);
+  }
+  .roleset label:last-child { border-right: 0; }
+  .roleset input { position: absolute; opacity: 0; pointer-events: none; }
+  .roleset input:checked + span { color: var(--accent); }
+  .roleset label:has(input:checked) { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .roleset label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .role-add { display: flex; gap: 4px; margin-top: 4px; }
+  .role-add input {
+    flex: 1 1 auto;
+    font-size: 10.5px;
+    padding: 3px 5px;
+  }
+  .role-add .btn { padding: 3px 9px; font-size: 10px; }
+
+  /* ---------- section headers ---------- */
+  .sec { margin-top: 13px; }
+  .sechead {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    border-bottom: 1.5px solid var(--ink);
+    padding-bottom: 3px;
+    margin-bottom: 7px;
+  }
+  .sechead h2 {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .sechead .src {
+    font: 400 8.5px/1 var(--mono);
+    color: var(--ink-3);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .legend {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    background: var(--band);
+    border-left: 2px solid var(--rule-strong);
+    padding: 3px 7px;
+    margin: 0 0 7px;
+  }
+  .legend strong { color: var(--ink); }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-align: left;
+    padding: 0 4px 4px;
+    border-bottom: 1px solid var(--rule-strong);
+    vertical-align: bottom;
+  }
+  td {
+    padding: 3px 4px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+    font-size: 12px;
+  }
+  td.num, th.num { text-align: center; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- category grouping (12 RN responsibilities) ---------- */
+  .cathead-row td {
+    padding: 7px 4px 3px;
+    font: 700 9px/1.2 var(--sans);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--field, transparent);
+  }
+  .cathead-row:first-child td { padding-top: 3px; }
+  .cathead {
+    grid-column: 1 / -1;
+    padding: 7px 0 3px;
+    font: 700 9px/1.2 var(--sans);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .cathead:first-child { padding-top: 0; }
+
+  .flag {
+    display: inline-block;
+    font: 700 8.5px/1.5 var(--mono);
+    letter-spacing: .06em;
+    padding: 0 5px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    min-width: 34px;
+    text-align: center;
+  }
+  .flag.ok { color: var(--ok); }
+  .flag.bad { color: var(--crit); }
+  .flag.idle { color: var(--ink-3); border-color: var(--rule); }
+
+  /* ---------- funnel ---------- */
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);   /* 8 stages, two rows of four */
+    border: 1px solid var(--rule-strong);
+  }
+  .funnote {
+    font: 400 9px/1.45 var(--mono);
+    color: var(--ink-3);
+    margin: 4px 0 0;
+  }
+
+  /* ---------- DBI per-area entry, inside the funnel's first stage ---------- */
+  .f-areas {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 3px 0 1px;
+  }
+  .f-areas label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+  .f-areas span {
+    font: 700 7.5px/1 var(--sans);
+    letter-spacing: .08em;
+    color: var(--ink-3);
+  }
+  .f-areas input {
+    width: 38px;
+    text-align: center;
+    font-size: 12px;
+    padding: 2px;
+  }
+  /* the derived total sits under the two area boxes */
+  .fstage .f-val {
+    font: 600 15px/1.2 var(--sans);
+    color: var(--ink);
+    margin: 2px auto 0;
+  }
+  .fstage[data-state="crit"] { box-shadow: inset 3px 0 0 var(--crit); }
+  .fstage { padding: 7px 8px 8px; border-right: 1px solid var(--rule); text-align: center; }
+  .fstage:nth-child(4n) { border-right: 0; }
+  .fstage:nth-child(n+5) { border-top: 1px solid var(--rule); }
+  .fstage .f-lbl {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    min-height: 22px;
+    display: block;
+  }
+  .fstage input { width: 54px; margin: 3px auto 0; text-align: center; font-size: 15px; padding: 3px 2px; }
+  .fstage .f-rate {
+    font: 600 9.5px/1.4 var(--mono);
+    color: var(--accent);
+    margin-top: 3px;
+    min-height: 13px;
+  }
+
+  .status {
+    font-family: var(--sans);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    padding: 1px 3px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--field);
+    color: var(--ink-3);
+    width: 82px;
+  }
+  .status[data-s="Completed"] { color: var(--ok); border-color: var(--ok); }
+  .status[data-s="Ongoing"]   { color: var(--accent); border-color: var(--accent); }
+  .status[data-s="Pending"]   { color: var(--warn); border-color: var(--warn); }
+  .status[data-s="Deferred"]  { color: var(--ink-2); border-color: var(--rule-strong); }
+  .status[data-s="Cancelled"] { color: var(--crit); border-color: var(--crit); }
+
+  /* ---------- checkbox lists ---------- */
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+  .chk {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 2.5px 0;
+    font-size: 11.5px;
+    line-height: 1.3;
+    border-bottom: 1px dotted var(--rule);
+  }
+  .chk input[type="checkbox"] {
+    width: 12px; height: 12px;
+    margin: 2px 0 0;
+    accent-color: var(--accent);
+    flex: 0 0 auto;
+  }
+  .chk .sub { display: block; color: var(--ink-3); font-size: 9.5px; }
+
+  /* ---------- auto-narrative ---------- */
+  .narr {
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    border-left: 2px solid var(--accent);
+    padding: 2px 0 3px 7px;
+    margin: 2px 0 5px 18px;
+  }
+  .narr[hidden] { display: none; }
+  tr.narr-row[hidden] { display: none; }
+  tr.narr-row td { padding: 0; }
+
+  .narrative {
+    border: 1px solid var(--rule-strong);
+    padding: 9px 11px 11px;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .narrative h3 {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 9px 0 3px;
+  }
+  .narrative h3:first-child { margin-top: 0; }
+  .narrative p { margin: 0 0 7px; }
+  .narrative p:last-child { margin-bottom: 0; }
+  .narrative .empty { color: var(--ink-3); font-style: italic; }
+  .narrative[contenteditable="true"] {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    background: var(--accent-soft);
+  }
+  #btn-copy, #btn-edit-narrative, #btn-reset-narrative { margin-top: 8px; margin-right: 6px; }
+
+  /* ---------- activity log ---------- */
+  .actgroup {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 4px;
+  }
+  .act-count { width: 46px; }
+  .act-sub { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 11.5px; color: var(--ink-2); }
+
+  .routine-name-cell { display: flex; align-items: center; gap: 6px; }
+  .routine-name-input { flex: 1 1 auto; }
+  .row-remove {
+    flex: 0 0 auto;
+    font: 700 13px/1 var(--sans);
+    color: var(--ink-3);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    width: 18px;
+    height: 18px;
+    line-height: 16px;
+    padding: 0;
+    cursor: pointer;
+  }
+  .row-remove:hover { color: var(--crit); border-color: var(--crit); }
+  tr.routine-hidden { display: none; }
+  tr.total td {
+    border-top: 1.5px solid var(--ink);
+    border-bottom: 0;
+    font-weight: 700;
+    padding-top: 5px;
+  }
+
+  /* ---------- notes + signature ---------- */
+  textarea { resize: vertical; min-height: 46px; line-height: 1.5; }
+  .signrow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 34px;
+    margin-top: 20px;
+  }
+  .sigbox { padding-top: 24px; }
+  .sigline { border-top: 1px solid var(--ink); padding-top: 3px; }
+  .sigline .role {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .sigline .hint { font-size: 8.5px; color: var(--ink-3); }
+
+  .footnote {
+    margin-top: 14px;
+    padding-top: 6px;
+    border-top: 1px solid var(--rule);
+    font: 400 8.5px/1.5 var(--mono);
+    color: var(--ink-3);
+  }
+
+  .pagemark {
+    font: 500 8.5px/1 var(--mono);
+    color: var(--ink-3);
+    text-align: right;
+    margin-top: 10px;
+  }
+
+  /* ---------- print ---------- */
+  @page { size: letter portrait; margin: 0.42in; }
+
+  @media print {
+    :root {
+      color-scheme: light;
+      --paper:#ffffff; --band:#ffffff; --ink:#000000; --ink-2:#333333; --ink-3:#555555;
+      --rule:#bbbbbb; --rule-strong:#666666; --accent:#0b5347; --accent-soft:#eef5f3;
+      --ok:#0b5b3e; --warn:#7a4d05; --crit:#8c1f25; --field:#ffffff;
+    }
+    body { background:#fff; padding: 0; font-size: 10.5pt; }
+    .no-print { display: none !important; }
+    .sheet {
+      width: auto; min-height: 0; margin: 0; padding: 0;
+      border: 0; box-shadow: none;
+    }
+    input, select, textarea {
+      background: transparent !important;
+      border-color: #aaa !important;
+      color: #000 !important;
+      outline: 0 !important;
+    }
+    input[type="checkbox"] { -webkit-appearance: none; appearance: none; border: 1px solid #444; }
+    input[type="checkbox"]:checked::after { content: "\2715"; display: block; font-size: 10px; line-height: 10px; text-align: center; }
+    select { -webkit-appearance: none; appearance: none; }
+    .sec, .funnel, tr { page-break-inside: avoid; }
+    .fstage[data-state="crit"] { box-shadow: none; border-left: 3px solid var(--crit); }
+
+    /* print only what was actually checked or filled in */
+    .chkwrap:not(:has(input:checked)) { display: none; }
+    tr[data-empty="1"] { display: none; }
+    .cathead[data-empty="1"] { display: none; }
+    #sec-others[data-empty="1"] { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  @media (max-width: 8.9in) {
+    .sheet { width: 100%; padding: 18px; }
+    .identity { grid-template-columns: 1fr 1fr; }
+    .idcell:nth-child(3) { border-left: 0; }
+    .checks { grid-template-columns: 1fr; }
+    .funnel { grid-template-columns: repeat(2, 1fr); }
+    .fstage:nth-child(n+3) { border-top: 1px solid var(--rule); }
+    .fstage:nth-child(2n) { border-right: 0; }
+    .fstage:nth-child(4n) { border-right: 1px solid var(--rule); }
+    .fstage:nth-child(2n) { border-right: 0; }
+    /* the source captions are nowrap and were pushing the page sideways */
+    .sechead { flex-wrap: wrap; }
+    .sechead .src { margin-left: 0; flex: 1 1 100%; white-space: normal; }
+  }
+</style>
+
+<div class="toolbar no-print">
+  <button class="btn btn-primary" id="btn-print">Print sheet</button>
+  <button class="btn" id="btn-save">Save day</button>
+  <button class="btn" id="btn-clear">Clear day</button>
+  <button class="btn" id="btn-save-file">Save to file&hellip;</button>
+  <button class="btn" id="btn-load-file">Load from file&hellip;</button>
+  <input type="file" id="load-file-input" accept="application/json" hidden>
+  <span class="spacer"></span>
+  <span class="saved-note" id="saved-note">Not saved yet</span>
+</div>
+
+<details class="importer no-print" id="sync-settings">
+  <summary>Cloud sync (Google Sheets backend)</summary>
+
+  <p class="how">
+    Paste the Web App URL from your deployed Apps Script backend (see
+    <code>apps-script/README.md</code> in the repo for setup steps). Once set, Save also writes to
+    that Sheet, and opening a date checks it first &mdash; reachable from any device, not just this
+    browser. Leave blank to keep using this browser&#39;s own storage only.
+  </p>
+
+  <div class="imp-controls">
+    <input type="text" id="sync-url" placeholder="https://script.google.com/macros/s/&hellip;/exec"
+           style="flex:1 1 260px;font-family:var(--mono);font-size:11px;">
+    <button class="btn btn-primary" id="btn-sync-save-url">Save URL</button>
+    <button class="btn" id="btn-sync-clear-url">Clear</button>
+  </div>
+
+  <div class="imp-status" id="sync-status">No cloud backend configured &mdash; using this browser&#39;s storage only.</div>
+</details>
+
+<details class="importer no-print" id="importer">
+  <summary>Load from POMD Referral Master 2026</summary>
+
+  <p class="how">
+    In the Sheet, open the <code>Master</code> tab, select the header row plus every row of the current month,
+    copy, and paste below. Column order does not matter &mdash; columns are matched by name
+    (<code>DATE OF REFERRAL</code>, <code>GCS CATEGORY</code>, <code>EXPIRED</code>,
+    <code>BRAIN DEATH DECLARED</code>, <code>FAMILY APPROACHED</code>,
+    <code>FAMILY CONSENT</code>, <code>ORGANS DONATED</code>, <code>FINAL OUTCOME / STATUS</code>).
+    Tab-separated or CSV both work.
+  </p>
+
+  <textarea id="imp-paste" placeholder="Paste the header row and the case rows here..." spellcheck="false"></textarea>
+
+  <div class="imp-controls">
+    <button class="btn btn-primary" id="btn-import">Build week &amp; month totals</button>
+    <button class="btn" id="btn-import-clear">Clear paste</button>
+  </div>
+
+  <div class="imp-status" id="imp-status"></div>
+
+  <p class="imp-privacy">
+    Rows are counted, never copied &mdash; no case detail reaches the sheet, and the <code>NAME</code>
+    column is discarded on read, per the Data Privacy Act of 2012 (RA 10173).
+    Week runs Monday to Sunday around the sheet date; the month is the sheet date&#39;s month;
+    the daily funnel below takes only <strong>POTENTIAL</strong> cases dated on the sheet date.
+    Nothing is sent anywhere; parsing happens in this page.
+  </p>
+</details>
+
+<!-- ============================ PAGE 1 ============================ -->
+<div class="sheet">
+
+  <header class="letterhead">
+    <p class="rep">Republic of the Philippines &middot; Department of Health<br>Davao Center for Health Development &middot; Regional Health Office XI</p>
+    <p class="org">Southern Philippines Medical Center</p>
+    <p class="unit">Organ Transplant Services Unit &middot; SHARE</p>
+  </header>
+
+  <div class="doctitle">
+    <h1>Transplant Coordinator &mdash; Daily KPI &amp; Activity Monitoring Sheet</h1>
+    <div class="meta">AIMPACT v1<br>J.P. Laurel Ave, Davao City</div>
+  </div>
+
+  <div class="identity">
+    <div class="idcell">
+      <label class="lbl" for="f-date">Date</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="idcell">
+      <label class="lbl" for="f-name">Coordinator</label>
+      <input type="text" id="f-name" placeholder="Surname, First name">
+    </div>
+    <div class="idcell">
+      <span class="lbl">Role</span>
+      <div class="roleset" id="roleset">
+        <label><input type="radio" name="role" value="PTC_RN" checked><span>PTC&middot;RN</span></label>
+      </div>
+      <div class="role-add no-print">
+        <input type="text" id="new-role-name" placeholder="Add role...">
+        <button type="button" class="btn" id="btn-add-role">+</button>
+      </div>
+    </div>
+  </div>
+  <p class="legend no-print"><strong>How to fill up:</strong> enter today&#39;s date, your name, and pick your role (PTC&middot;RN or PTC&middot;MD).</p>
+
+  <!-- WEEKLY / MONTHLY UPDATE -->
+  <section class="sec">
+    <div class="sechead">
+      <h2>Weekly &amp; monthly update &mdash; POMD Referral Master</h2>
+      <span class="src" id="wm-period">mirrors the Weekly Update and Monthly Update tabs</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> nothing, usually &mdash; this refreshes itself hourly from the Sheet&#39;s Weekly Update and Monthly Update tabs. Type over a number by hand if you need to correct it before the next refresh.</p>
+    <p class="imp-status no-print" id="wm-fetch-status">Not yet checked.</p>
+    <button class="btn no-print" id="btn-wm-refresh" style="margin:0 0 8px">Refresh now</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Measure</th>
+          <th class="num" style="width:18%" id="wm-th-week">This week</th>
+          <th class="num" style="width:18%" id="wm-th-month">This month</th>
+          <th class="num" style="width:16%">2026 YTD</th>
+        </tr>
+      </thead>
+      <tbody id="wm-body"></tbody>
+    </table>
+    <p class="funnote">
+      Counts cover all GCS categories, as the Master&#39;s own Weekly and Monthly Update tabs do.
+      YTD column auto-updates from the Master&#39;s Dashboard tab, same as Week and Month.
+      Expired YTD is the <code>EXPIRED</code> column; the Master&#39;s <code>DNR/EXPIRY</code> column has disagreed with it before, worth spot-checking if the two drift.
+    </p>
+  </section>
+
+  <!-- FUNNEL -->
+  <section class="sec">
+    <div class="sechead">
+      <h2>PMOD Monitoring &mdash; daily counts</h2>
+      <span class="src">stages and vocabulary mirror the POMD Referral Master 2026 dashboard</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> enter DBI identified split by ER and ICU; the box below it and every rate down the funnel calculate automatically. Enter the remaining stage counts as they happen through the day &mdash; referred to SHARE, potential donors, and on down.</p>
+    <div class="funnel">
+      <div class="fstage">
+        <span class="f-lbl">DBI identified</span>
+        <div class="f-areas">
+          <label><span>ER</span><input type="number" min="0" step="1" id="dbi-er" placeholder="0"></label>
+          <label><span>ICU</span><input type="number" min="0" step="1" id="dbi-icu" placeholder="0"></label>
+        </div>
+        <div class="f-val" id="fn-dbi">0</div>
+        <div class="f-rate">&nbsp;</div>
+      </div>
+      <div class="fstage" id="fstage-dbiref">
+        <span class="f-lbl">Referred to SHARE</span>
+        <input type="number" min="0" step="1" id="dbi-referred" placeholder="0">
+        <div class="f-rate" id="rate-dbiref">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Potential donors</span>
+        <input type="number" min="0" step="1" id="fn-referrals" placeholder="0">
+        <div class="f-rate" id="rate-potential">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Escalated to eligible</span>
+        <input type="number" min="0" step="1" id="fn-eligible" placeholder="0">
+        <div class="f-rate" id="rate-eligible">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Brain death declared</span>
+        <input type="number" min="0" step="1" id="fn-bd" placeholder="0">
+        <div class="f-rate" id="rate-bd">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Family approached</span>
+        <input type="number" min="0" step="1" id="fn-approached" placeholder="0">
+        <div class="f-rate" id="rate-approached">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Family consent</span>
+        <input type="number" min="0" step="1" id="fn-consented" placeholder="0">
+        <div class="f-rate" id="rate-consent">&nbsp;</div>
+      </div>
+      <div class="fstage">
+        <span class="f-lbl">Actual donors</span>
+        <input type="number" min="0" step="1" id="fn-donors" placeholder="0">
+        <div class="f-rate" id="rate-donor">&nbsp;</div>
+      </div>
+    </div>
+    <p class="funnote">
+      The first two stages are derived from the DBI monitoring log above and are not typed here.
+      Scope: GCS category POTENTIAL only &mdash; 25 of 104 referrals in 2026 to date, roughly one every eight days.
+      Programme funnel 2026: 6 escalated to eligible &rarr; 6 brain death declared &rarr; 6 families approached &rarr; 1 consent &rarr; 1 actual donor. Consent rate 17%.
+      Cases graded possible (73) stay in the POMD Referral Master and are not tracked on this sheet.
+    </p>
+  </section>
+
+  <!-- CITIZEN'S CHARTER -->
+  <section class="sec">
+    <div class="sechead">
+      <h2>Citizen&#39;s Charter services delivered</h2>
+      <span class="src">OTSU Citizens Charter 2026 &middot; office hours 7:00 AM&ndash;3:00 PM, Mon&ndash;Fri</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> for each service delivered today, enter clients served and how many HCES survey forms were issued.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th class="num" style="width:13%">Charter time</th>
+          <th class="num" style="width:12%">Clients served</th>
+          <th class="num" style="width:13%">HCES forms issued</th>
+        </tr>
+      </thead>
+      <tbody id="charter-body"></tbody>
+    </table>
+  </section>
+
+  <div class="pagemark">Page 1 of 2 &middot; SHARE&nbsp;TC&nbsp;Daily&nbsp;KPI</div>
+</div>
+
+<!-- ============================ PAGE 2 ============================ -->
+<div class="sheet">
+
+  <div class="doctitle">
+    <h1>Daily routine, activity log &amp; sign-off</h1>
+    <div class="meta" id="page2-meta">&mdash;</div>
+  </div>
+
+  <!-- DAILY ROUTINE -->
+  <section class="sec">
+    <div class="sechead">
+      <h2>Daily routine</h2>
+      <span class="src">OTSU Calendar of Activities, &ldquo;Daily Routine&rdquo; &middot; std min entered by coordinator, not a published schedule</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> for each task worked today, enter standard minutes and a count, and the time started. Subtotal and Ended calculate automatically once both are entered, whatever the status. Use &ldquo;+ Add routine&rdquo; below for anything not on the list.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th class="num" style="width:9%">Std min</th>
+          <th class="num" style="width:7%">Count</th>
+          <th class="num" style="width:9%">Subtotal</th>
+          <th class="num" style="width:11%">Started</th>
+          <th class="num" style="width:11%">Ended</th>
+          <th style="width:17%">Status</th>
+        </tr>
+      </thead>
+      <tbody id="routine-body"></tbody>
+    </table>
+    <button class="btn no-print" id="btn-add-routine" style="margin-top:8px">+ Add routine</button>
+    <button class="btn no-print" id="btn-show-hidden-routines" style="margin-top:8px;margin-left:8px" hidden>Show removed rows (0)</button>
+  </section>
+
+  <!-- ADMIN + OUTREACH -->
+  <section class="sec no-print">
+    <div class="sechead">
+      <h2>Routine administration, coordination &amp; internal outreach</h2>
+      <span class="src">carried from SPMC SHARE TC Daily Activity Report</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> tick every activity done today. Each tick writes its own sentence into the narrative report below &mdash; nothing else to type.</p>
+    <div class="checks" id="admin-checks"></div>
+  </section>
+
+  <!-- NARRATIVE -->
+  <section class="sec">
+    <div class="sechead">
+      <h2>Narrative accomplishment report</h2>
+      <span class="src">auto-generated from every entry on both sheets</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> nothing &mdash; this writes itself from every entry above as you make it. Click Edit to rewrite it by hand; Copy it once the sheet is complete.</p>
+    <div class="narrative" id="narrative-out"></div>
+    <button class="btn no-print" id="btn-copy">Copy narrative</button>
+    <button class="btn no-print" id="btn-edit-narrative">Edit narrative</button>
+    <button class="btn no-print" id="btn-reset-narrative" hidden>Reset to auto-generated</button>
+    <button class="btn no-print" id="btn-export-word">Export as Word</button>
+  </section>
+
+  <!-- OTHERS -->
+  <section class="sec no-print" id="sec-others">
+    <div class="sechead">
+      <h2>Others &mdash; activities not listed above</h2>
+      <span class="src">free text</span>
+    </div>
+    <p class="legend no-print"><strong>How to fill up:</strong> only if something happened today that isn&#39;t covered by any row above &mdash; an incident, a near-miss, an escalation. Leave blank otherwise.</p>
+    <textarea id="f-others" placeholder="Specify any activity, incident, near-miss, or escalation not covered by the rows above."></textarea>
+  </section>
+
+  <div class="signrow">
+    <div class="sigbox">
+      <div class="sigline">
+        <div class="role">Prepared by</div>
+        <div class="hint">Signature over printed name &mdash; Transplant Coordinator</div>
+      </div>
+    </div>
+    <div class="sigbox">
+      <div class="sigline">
+        <div class="role">Noted by</div>
+        <div class="hint">Immediate Supervisor&#39;s signature</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    Record case identifiers or initials only. Full patient names must not appear on this sheet &mdash; Data Privacy Act of 2012 (RA 10173).
+    Daily routine standard minutes are entered by the coordinator, not drawn from a published schedule; Citizen&#39;s Charter times are from the OTSU Citizens Charter 2026.
+  </p>
+
+  <div class="pagemark">Page 2 of 2 &middot; SHARE&nbsp;TC&nbsp;Daily&nbsp;KPI</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SHIFT_MIN = 480;          // 7:00 AM - 3:00 PM
+  var narrativeEdited = false;  // true once the coordinator hand-edits the narrative
+
+  var STATUSES = ["", "Completed", "Ongoing", "Pending", "Deferred", "Cancelled"];
+
+  var ROLE_LABEL = {
+    PTC_RN: "Procurement Transplant Coordinator, RN (PTC/RN)"
+  };
+
+  /* coordinator-added roles - kept in their own registry, not tied to any
+     single saved day, since a role is an org fact, not a daily answer */
+  var CUSTOM_ROLE_LABELS = {};
+  var customRoleCount = 0;
+  var CUSTOM_ROLES_KEY = "share-tc-dash:custom-roles";
+
+  function addRole(name, existingValue) {
+    name = (name || "").trim();
+    if (!name) { return; }
+    var value = existingValue;
+    if (!value) {
+      customRoleCount++;
+      value = "CUSTOM_" + customRoleCount;
+    }
+    CUSTOM_ROLE_LABELS[value] = name;
+    el("roleset").insertAdjacentHTML("beforeend",
+      "<label><input type='radio' name='role' value='" + esc(value) + "'><span>" + esc(name) + "</span></label>");
+  }
+
+  function loadCustomRoles() {
+    try {
+      var raw = localStorage.getItem(CUSTOM_ROLES_KEY);
+      if (!raw) { return; }
+      JSON.parse(raw).forEach(function (r) { addRole(r.name, r.value); });
+    } catch (e) { /* ignore corrupt storage */ }
+  }
+
+  function saveCustomRoles() {
+    try {
+      var arr = Object.keys(CUSTOM_ROLE_LABELS).map(function (v) {
+        return { value: v, name: CUSTOM_ROLE_LABELS[v] };
+      });
+      localStorage.setItem(CUSTOM_ROLES_KEY, JSON.stringify(arr));
+    } catch (e) { /* storage unavailable - role just won't persist */ }
+  }
+
+  /* ---------- source data ---------- */
+
+  var ROUTINE = [
+    "PMOD rounds",
+    "General inquiry",
+    "Evaluation of patient documents",
+    "Answer referrals (cadaveric donors, possible recipients)",
+    "Scheduling &amp; send-out of blood to NKTI",
+    "Post-KT evaluation",
+    "Referral to Zpackage Navigator",
+    "Referral to Ethics",
+    "Donor screening prior to Ethics",
+    "Pre- and post-transplant conference",
+    "KT admission preparations",
+    "Advocacy for deceased organ donation",
+    "Inter- and intra-hospital coordination",
+    "Continuing education",
+    "Quality control",
+    "Biopsy charge slip &amp; LOA",
+    "Opt-IN research project",
+    "Neuro ABC research project",
+    "Crit Care research project",
+    "EMR-DAS research project"
+  ];
+
+  var ADMIN = [
+    ["Intra-hospital / inter-departmental internal communication", "",
+     "Conducted intra-hospital and inter-departmental communication with clinical units to coordinate donation and transplant activities."],
+    ["Inter-hospital / external communication", "",
+     "Conducted inter-hospital and external communication with partner facilities and referring institutions within the donor service area."],
+    ["Updating of records", "",
+     "Updated donor, candidate and transplant records in accordance with hospital, professional and national documentation standards."],
+    ["General coordination activities", "",
+     "Carried out general coordination activities across the multidisciplinary transplant team."],
+    ["Reports (preparation, submission)", "",
+     "Prepared and submitted required unit reports."],
+    ["Quality control", "",
+     "Performed quality control review of unit documentation and processes."],
+    ["Research and development", "",
+     "Engaged in research and development work related to organ donation and transplantation."],
+    ["Visibility / relationship rounds", "High-yield units &mdash; ICU, ER, Neuro",
+     "Conducted visibility and relationship rounds in high-yield units (ICU, ER, Neuro) to build rapport and maintain a strong SHARE presence."],
+    ["Bedside huddles / micro-teaching", "Referral triggers &amp; protocols with unit staff",
+     "Held bedside huddles and micro-teaching sessions with unit nurses and residents on donor referral triggers and protocols."],
+    ["Post-donation unit debriefing", "ICU and OR staff, after a procurement",
+     "Debriefed ICU and OR staff following a procurement, sharing the outcome and reviewing the process."],
+    ["Internal awareness campaigns", "Materials set up or manned in hospital areas",
+     "Set up and manned organ donation informational materials in hospital areas."],
+    ["Hospital staff training", "Formal sessions",
+     "Delivered a formal hospital staff training session on organ and tissue donation."]
+  ];
+
+  /* the 12 RN responsibility categories (items 1-12 of "Responsibilities of a
+     Registered Nurse"; items 13-15 - Emergency Response, Continuous Learning,
+     Teamwork/Soft Skills - are out of scope). Every ROUTINE/ADMIN row is
+     force-mapped to its nearest category even where the fit is loose (SHARE
+     TC work is coordinator/donor-network, not bedside-clinical) */
+  var CATEGORY_LABELS = [
+    "Patient Assessment & Monitoring",
+    "Medical History & Documentation",
+    "Lab Work and Diagnostics",
+    "Medication and Treatment Administration",
+    "Patient Observation and Safety",
+    "Care Planning and Coordination",
+    "Patient and Family Education",
+    "Emotional Support and Advocacy",
+    "Team Supervision",
+    "Daily Living Assistance",
+    "Admissions and Discharges",
+    "Procedure and Surgery Preparation"
+  ];
+
+  /* one category index (0-11, into CATEGORY_LABELS) per ROUTINE row, same order as ROUTINE */
+  var ROUTINE_CATEGORY = [
+    0,  // PMOD rounds -> Patient Assessment & Monitoring
+    6,  // General inquiry -> Patient and Family Education
+    1,  // Evaluation of patient documents -> Medical History & Documentation
+    5,  // Answer referrals -> Care Planning and Coordination
+    2,  // Scheduling & send-out of blood to NKTI -> Lab Work and Diagnostics
+    0,  // Post-KT evaluation -> Patient Assessment & Monitoring
+    5,  // Referral to Zpackage Navigator -> Care Planning and Coordination
+    5,  // Referral to Ethics -> Care Planning and Coordination
+    0,  // Donor screening prior to Ethics -> Patient Assessment & Monitoring
+    5,  // Pre- and post-transplant conference -> Care Planning and Coordination
+    10, // KT admission preparations -> Admissions and Discharges
+    7,  // Advocacy for deceased organ donation -> Emotional Support and Advocacy
+    5,  // Inter- and intra-hospital coordination -> Care Planning and Coordination
+    8,  // Continuing education -> Team Supervision (forced fit)
+    1,  // Quality control -> Medical History & Documentation (forced fit)
+    11, // Biopsy charge slip & LOA -> Procedure and Surgery Preparation
+    1,  // Opt-IN research project -> Medical History & Documentation (forced fit)
+    1,  // Neuro ABC research project -> Medical History & Documentation (forced fit)
+    1,  // Crit Care research project -> Medical History & Documentation (forced fit)
+    1   // EMR-DAS research project -> Medical History & Documentation (forced fit)
+  ];
+
+  /* one category index (0-11) per ADMIN row, same order as ADMIN */
+  var ADMIN_CATEGORY = [
+    5,  // Intra-hospital / inter-departmental internal communication -> Care Planning and Coordination
+    5,  // Inter-hospital / external communication -> Care Planning and Coordination
+    1,  // Updating of records -> Medical History & Documentation
+    5,  // General coordination activities -> Care Planning and Coordination
+    1,  // Reports (preparation, submission) -> Medical History & Documentation
+    1,  // Quality control -> Medical History & Documentation (forced fit)
+    1,  // Research and development -> Medical History & Documentation (forced fit)
+    6,  // Visibility / relationship rounds -> Patient and Family Education
+    8,  // Bedside huddles / micro-teaching -> Team Supervision
+    7,  // Post-donation unit debriefing -> Emotional Support and Advocacy
+    6,  // Internal awareness campaigns -> Patient and Family Education
+    8   // Hospital staff training -> Team Supervision
+  ];
+
+  /* verb phrases for the daily routine, inflected by status */
+  var ROUTINE_PHRASE = [
+    "PMOD rounds",
+    "general inquiry handling at the OTSU reception",
+    "evaluation of patient documents",
+    "response to referrals for cadaveric donors and possible recipients",
+    "scheduling and send-out of blood samples to NKTI",
+    "post-kidney-transplant evaluation",
+    "referral to the Zpackage Navigator",
+    "referral to Ethics",
+    "donor screening prior to Ethics review",
+    "the pre- and post-transplant conference",
+    "kidney transplant admission preparations",
+    "advocacy work for deceased organ donation",
+    "inter- and intra-hospital coordination",
+    "continuing education",
+    "quality control",
+    "biopsy charge slip and LOA processing",
+    "work on the Opt-IN research project",
+    "work on the Neuro ABC research project",
+    "work on the Crit Care research project",
+    "work on the EMR-DAS research project"
+  ];
+
+  function routineSentence(phrase, status) {
+    var cap = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+    switch (status) {
+      case "Completed": return "Completed " + phrase + ".";
+      case "Ongoing":   return cap + " is ongoing and carries over to the next day.";
+      case "Pending":   return cap + " remains pending and has not been started.";
+      case "Deferred":  return cap + " was deferred to a later date.";
+      case "Cancelled": return cap + " was cancelled for the day.";
+      default: return "";
+    }
+  }
+
+  /* the four research-project routine rows, identified by name rather than
+     a fixed index so the sentence stays correct if the routine list is reordered */
+  var RESEARCH_NAMES = ["Opt-IN", "Neuro ABC", "Crit Care", "EMR-DAS"];
+
+  /* fixed rows narrate via their ROUTINE_PHRASE entry; coordinator-added
+     rows narrate using whatever name they typed into the row itself */
+  function routinePhraseFor(i, row) {
+    if (i < ROUTINE_PHRASE.length) { return ROUTINE_PHRASE[i]; }
+    var nameInput = row.querySelector("[data-r=name]");
+    return nameInput ? softLower(nameInput.value.trim()) : "";
+  }
+
+  function researchProjectName(i) {
+    var label = ROUTINE[i];
+    if (label === undefined) { return null; }
+    var hit = RESEARCH_NAMES.filter(function (n) { return label.indexOf(n) === 0; })[0];
+    return hit || null;
+  }
+
+  /* while Ongoing, all four are in the same real phase - document/requirement
+     compliance, planning and coordination, and tool development - but each
+     gets its own wording rather than one template repeated four times */
+  var RESEARCH_PREP = {
+    "Opt-IN": "The Opt-IN research project is in the preparation phase, completing " +
+              "document and requirement compliance, coordinating extensively with stakeholders, " +
+              "and building the tools the study will use.",
+    "Neuro ABC": "Preparation continues for the Neuro ABC research project: requirement and " +
+                 "document compliance, close planning and coordination, and development of the " +
+                 "tools the study needs.",
+    "Crit Care": "The Crit Care research project remains in preparation, with document " +
+                 "compliance, extensive coordination, and the study&#39;s tools all still being " +
+                 "put in place.",
+    "EMR-DAS": "The EMR-DAS research project is still being readied, with compliance " +
+               "paperwork, planning and coordination, and the tools it will run on all in " +
+               "progress."
+  };
+
+  function researchPrepSentence(name) {
+    return RESEARCH_PREP[name] || (name + " research project remains in the preparation phase.");
+  }
+
+  var CHARTER = [
+    ["General inquiry", "20 min", 20],
+    ["KT orientation", "200 min", 200],
+    ["Request for KT ethics evaluation", "60 min", 60],
+    ["Request for enlistment, national waiting list", "30 min", 30],
+    ["Submission of requirements for enlistment", "60 min", 60]
+  ];
+
+
+  /* the measures on the Master's own Weekly Update and Monthly Update tabs,
+     with the 2026 YTD position to 26 July as the reference column */
+  var WM_ROWS = [
+    ["total",   "Total patients referred", "104"],
+    ["expired", "Expired",                 "83"],
+    ["bd",      "Brain death declared",    "6"],
+    ["appr",    "Families approached",     "6"],
+    ["cons",    "Family consents",         "1"],
+    ["donors",  "Actual donors",           "1"]
+  ];
+
+  var MONTHS = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+  /* ---------- DBI: the detection pool above referral ----------
+     Tallied live rather than logged per case, so no patient-level detail is held.
+     Criteria need OTSU sign-off. GCS < 7 is the sourced *referral* trigger (DCODC),
+     not the DBI definition - nothing in the corpus defines DBI, so none is coded. */
+  var DBI_COUNTERS = ["dbi-er", "dbi-icu", "dbi-referred"];
+
+  /* ---------- helpers ---------- */
+
+  function el(id) { return document.getElementById(id); }
+
+  function options(list, cls) {
+    return list.map(function (o) {
+      return '<option value="' + o + '">' + (o || "&mdash;") + "</option>";
+    }).join("");
+  }
+
+  function num(id) {
+    var v = parseFloat(el(id).value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function pct(a, b) {
+    if (!b) { return null; }
+    return Math.round((a / b) * 100);
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function capFirst(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
+  /* lowercase a label for mid-sentence use without flattening acronyms
+     (KT, NKTI, OR, LOA, HCES stay upper) */
+  function softLower(s) {
+    return s.replace(/[A-Za-z]+/g, function (w) {
+      if (w.length > 1 && w === w.toUpperCase()) { return w; }
+      return w.charAt(0).toLowerCase() + w.slice(1);
+    });
+  }
+
+  /* "a", "a and b", "a, b and c" - for prose lists */
+  function listPhrase(items) {
+    if (!items.length) { return ""; }
+    if (items.length === 1) { return items[0]; }
+    return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
+  }
+
+  function sentences(arr) {
+    return arr.filter(Boolean).join(" ");
+  }
+
+  function para(title, text) {
+    if (!text) { return ""; }
+    return "<h3>" + title + "</h3><p>" + text + "</p>";
+  }
+
+  /* plain hours-and-minutes wording instead of a raw minute count once it
+     passes an hour, e.g. 90 -> "1 hour and 30 minutes" */
+  function formatDuration(mins) {
+    mins = Math.round(mins);
+    if (mins < 60) { return mins + " minute" + (mins === 1 ? "" : "s"); }
+    var h = Math.floor(mins / 60), m = mins % 60;
+    var hPart = h + " hour" + (h === 1 ? "" : "s");
+    if (!m) { return hPart; }
+    return hPart + " and " + m + " minute" + (m === 1 ? "" : "s");
+  }
+
+  /* ---------- build the DOM ---------- */
+
+  function buildWm() {
+    var html = WM_ROWS.map(function (r) {
+      return "<tr data-wm='" + r[0] + "'>" +
+        "<td>" + r[1] + "</td>" +
+        "<td class='num'><input type='number' min='0' step='1' data-p='week' placeholder='0'></td>" +
+        "<td class='num'><input type='number' min='0' step='1' data-p='month' placeholder='0'></td>" +
+        "<td class='num mono ytd-cell' style='color:var(--ink-3)'>" + r[2] + "</td>" +
+      "</tr>";
+    }).join("");
+
+    /* consent rate is derived from the two rows above it, never typed */
+    html += "<tr data-wm='rate'>" +
+      "<td>Consent rate</td>" +
+      "<td class='num mono' id='wm-rate-week'>&mdash;</td>" +
+      "<td class='num mono' id='wm-rate-month'>&mdash;</td>" +
+      "<td class='num mono ytd-cell' style='color:var(--ink-3)'>17%</td>" +
+    "</tr>";
+
+    el("wm-body").innerHTML = html;
+  }
+
+  /* ---------- live auto-fetch, Weekly Update / Monthly Update tabs only ----------
+     Deliberately never touches the Master tab. Both tabs export their per-patient
+     rows below the aggregate header, so only the first two lines of the response
+     are ever read - the rest is discarded unparsed and never stored or rendered. */
+  var WM_SHEET_ID = "1i-nelRklAwL66TeBWHvqr_eGQ7vkw3PjUxMMP1vfZn0";
+  var WM_FETCH_TABS = { week: "Weekly Update", month: "Monthly Update" };
+  var WM_LABELS  = { total: "Total Patients",  expired: "Expired", bd: "Brain Death",
+                      appr: "Family Approached", cons: "Family Consent", donors: "Actual Donors" };
+  /* the Dashboard tab is pure aggregate - no patient rows at all - and phrases
+     its own header labels slightly differently, hence the separate map */
+  var YTD_LABELS = { total: "Total Referrals", expired: "Expired", bd: "Brain Death",
+                      appr: "Family Approached", cons: "Family Consent", donors: "Actual Donors",
+                      rate: "Consent Rate" };
+  var WM_FETCH_INTERVAL_MS = 60 * 60 * 1000;
+
+  function fetchSheetCsv(sheetName) {
+    var url = "https://docs.google.com/spreadsheets/d/" + WM_SHEET_ID +
+      "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(sheetName);
+    return fetch(url).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.text();
+    });
+  }
+
+  function findLabelCol(row, label) {
+    var w = label.toUpperCase();
+    for (var i = 0; i < row.length; i++) {
+      if (row[i].toUpperCase().indexOf(w) > -1) { return i; }
+    }
+    return -1;
+  }
+
+  /* only the header row and the one values row beneath it are read;
+     everything past line 2 (the per-patient rows, where present) is
+     ignored entirely - never stored, logged, or rendered */
+  function parseAggregateRow(csvText, labelMap) {
+    var firstTwo = csvText.split(/\r\n|\n|\r/, 2);
+    if (firstTwo.length < 2) { return null; }
+    var labels = splitLine(firstTwo[0], ",");
+    var values = splitLine(firstTwo[1], ",");
+    var out = {};
+    Object.keys(labelMap).forEach(function (key) {
+      var i = findLabelCol(labels, labelMap[key]);
+      out[key] = (i > -1 && values[i] !== undefined) ? values[i].trim() : "";
+    });
+    return out;
+  }
+
+  function toInt(v) {
+    var n = parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function applyWmAggregate(period, agg) {
+    if (!agg) { return; }
+    Object.keys(agg).forEach(function (key) {
+      var row = document.querySelector("[data-wm='" + key + "']");
+      if (!row) { return; }
+      var c = row.querySelector("[data-p='" + period + "']");
+      if (c) { c.value = toInt(agg[key]); }
+    });
+  }
+
+  function applyYtd(agg) {
+    if (!agg) { return; }
+    ["total", "expired", "bd", "appr", "cons", "donors"].forEach(function (key) {
+      var row = document.querySelector("[data-wm='" + key + "']");
+      if (!row) { return; }
+      var c = row.querySelector(".ytd-cell");
+      if (c) { c.textContent = toInt(agg[key]); }
+    });
+    var rateRow = document.querySelector("[data-wm='rate']");
+    if (rateRow) {
+      var rc = rateRow.querySelector(".ytd-cell");
+      if (rc && agg.rate) { rc.textContent = agg.rate; }
+    }
+  }
+
+  function setWmFetchStatus(msg, cls) {
+    var box = el("wm-fetch-status");
+    if (!box) { return; }
+    box.textContent = msg;
+    box.className = "imp-status no-print" + (cls ? " " + cls : "");
+  }
+
+  function autoFetchWm() {
+    setWmFetchStatus("Checking Google Sheet…");
+    Promise.all([
+      fetchSheetCsv(WM_FETCH_TABS.week).then(function (t) { return parseAggregateRow(t, WM_LABELS); }),
+      fetchSheetCsv(WM_FETCH_TABS.month).then(function (t) { return parseAggregateRow(t, WM_LABELS); }),
+      fetchSheetCsv("Dashboard").then(function (t) { return parseAggregateRow(t, YTD_LABELS); })
+    ]).then(function (results) {
+      applyWmAggregate("week", results[0]);
+      applyWmAggregate("month", results[1]);
+      applyYtd(results[2]);
+      compute();
+      var t = new Date();
+      setWmFetchStatus("Auto-updated " + String(t.getHours()).padStart(2, "0") + ":" +
+        String(t.getMinutes()).padStart(2, "0") + " from the Google Sheet (refreshes hourly).", "good");
+    }).catch(function (e) {
+      setWmFetchStatus("Could not reach the Google Sheet (" + e.message +
+        ") - showing the last values loaded. Numbers can still be typed in manually.", "bad");
+    });
+  }
+
+  /* the Master's Weekly Update tab runs Monday to Sunday */
+  function weekRange(value) {
+    if (!value) { return null; }
+    var p = value.split("-");
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    if (isNaN(d.getTime())) { return null; }
+    var back = (d.getDay() + 6) % 7;                  // Monday = 0
+    var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - back);
+    var sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+    return { start: mon, end: sun };
+  }
+
+  function renderPeriod() {
+    var r = weekRange(el("f-date").value);
+    var box = el("wm-period");
+    if (!r) {
+      box.textContent = "mirrors the Weekly Update and Monthly Update tabs";
+      return;
+    }
+    var sameMonth = r.start.getMonth() === r.end.getMonth();
+    var span = MONTHS[r.start.getMonth()] + " " + r.start.getDate() + " - " +
+               (sameMonth ? "" : MONTHS[r.end.getMonth()] + " ") + r.end.getDate() + ", " +
+               r.end.getFullYear();
+    var p = el("f-date").value.split("-");
+    box.textContent = "Week: " + span + "  |  Month: " + MONTHS[+p[1] - 1] + " " + p[0];
+    el("wm-th-week").textContent = "Week to " + r.end.getDate() + " " +
+                                   MONTHS[r.end.getMonth()].slice(0, 3);
+    el("wm-th-month").textContent = MONTHS[+p[1] - 1].slice(0, 3) + " " + p[0];
+  }
+
+  function buildCharter() {
+    el("charter-body").innerHTML = CHARTER.map(function (r) {
+      return "<tr>" +
+        "<td>" + r[0] + "</td>" +
+        "<td class='num mono' style='color:var(--ink-3)'>" + r[1] + "</td>" +
+        "<td class='num'><input type='number' min='0' step='1' data-cc='served' placeholder='0'></td>" +
+        "<td class='num'><input type='number' min='0' step='1' data-cc='hces' placeholder='0'></td>" +
+      "</tr>";
+    }).join("");
+  }
+
+  function routineRowHtml(i) {
+    var r = ROUTINE[i];
+    return "<tr>" +
+        "<td class='routine-name-cell'><span>" + r + "</span>" +
+          "<button type='button' class='row-remove no-print' data-hide-routine='" + i + "' title='Remove this row'>&times;</button></td>" +
+        "<td class='num'><input type='number' class='act-count' min='0' step='1' data-r='std' placeholder='0'></td>" +
+        "<td class='num'><input type='number' class='act-count' min='0' step='1' data-r='count' placeholder='0'></td>" +
+        "<td class='num act-sub' data-r='sub'>&mdash;</td>" +
+        "<td class='num'><input type='time' data-r='start'></td>" +
+        "<td class='num mono' data-r='end'>&mdash;</td>" +
+        "<td><select class='status' data-routine='" + i + "' data-s=''>" + options(STATUSES) + "</select></td>" +
+      "</tr>" +
+      "<tr class='narr-row' data-narr-routine='" + i + "' hidden><td colspan='7' style='border-bottom:1px solid var(--rule);padding:0'>" +
+        "<div class='narr' style='margin-left:4px'></div></td></tr>";
+  }
+
+  /* rows render grouped under their category heading, but every row keeps
+     its original data-routine index - only visual order changes, so
+     hideRoutine/removeCustomRoutine/save-load (attribute-keyed) still work */
+  function buildRoutine() {
+    var html = "";
+    CATEGORY_LABELS.forEach(function (label, cat) {
+      var idxs = [];
+      ROUTINE.forEach(function (r, i) { if (ROUTINE_CATEGORY[i] === cat) { idxs.push(i); } });
+      if (!idxs.length) { return; }
+      html += "<tr class='cathead-row'><td colspan='7'>" + esc(label) + "</td></tr>";
+      idxs.forEach(function (i) { html += routineRowHtml(i); });
+    });
+    el("routine-body").innerHTML = html;
+  }
+
+  /* coordinator-added rows, appended after the fixed OTSU list rather than
+     rebuilding the table, so already-entered data on other rows survives */
+  var customRoutineCount = 0;
+
+  function addCustomRoutine(name) {
+    var i = ROUTINE.length + customRoutineCount;
+    customRoutineCount++;
+    el("routine-body").insertAdjacentHTML("beforeend",
+      "<tr data-custom='1'>" +
+        "<td class='routine-name-cell'>" +
+          "<input type='text' data-r='name' class='routine-name-input' placeholder='Task name' value='" + esc(name || "") + "'>" +
+          "<button type='button' class='row-remove no-print' data-remove-routine='" + i + "' title='Remove this row'>&times;</button>" +
+        "</td>" +
+        "<td class='num'><input type='number' class='act-count' min='0' step='1' data-r='std' placeholder='0'></td>" +
+        "<td class='num'><input type='number' class='act-count' min='0' step='1' data-r='count' placeholder='0'></td>" +
+        "<td class='num act-sub' data-r='sub'>&mdash;</td>" +
+        "<td class='num'><input type='time' data-r='start'></td>" +
+        "<td class='num mono' data-r='end'>&mdash;</td>" +
+        "<td><select class='status' data-routine='" + i + "' data-s=''>" + options(STATUSES) + "</select></td>" +
+      "</tr>" +
+      "<tr class='narr-row' data-narr-routine='" + i + "' hidden><td colspan='7' style='border-bottom:1px solid var(--rule);padding:0'>" +
+        "<div class='narr' style='margin-left:4px'></div></td></tr>");
+  }
+
+  /* fixed OTSU rows can't be deleted from the DOM without shifting every
+     index used elsewhere (ROUTINE_PHRASE[i], researchProjectName(i), the
+     narr-row wiring) - hiding instead keeps every index stable */
+  function hideRoutine(i) {
+    var sel = document.querySelector("[data-routine='" + i + "']");
+    if (!sel) { return; }
+    sel.closest("tr").classList.add("routine-hidden");
+    var narrRow = document.querySelector("[data-narr-routine='" + i + "']");
+    if (narrRow) { narrRow.classList.add("routine-hidden"); }
+    refreshHiddenRoutineCount();
+  }
+
+  function showAllHiddenRoutines() {
+    Array.prototype.forEach.call(document.querySelectorAll(".routine-hidden"), function (row) {
+      row.classList.remove("routine-hidden");
+    });
+    refreshHiddenRoutineCount();
+  }
+
+  function refreshHiddenRoutineCount() {
+    var n = document.querySelectorAll("tr.routine-hidden:not(.narr-row)").length;
+    var btn = el("btn-show-hidden-routines");
+    if (!btn) { return; }
+    btn.hidden = n === 0;
+    btn.textContent = "Show removed rows (" + n + ")";
+  }
+
+  function removeCustomRoutine(i) {
+    var sel = document.querySelector("[data-routine='" + i + "']");
+    if (!sel) { return; }
+    var row = sel.closest("tr");
+    var narrRow = document.querySelector("[data-narr-routine='" + i + "']");
+    if (row) { row.remove(); }
+    if (narrRow) { narrRow.remove(); }
+  }
+
+  /* switching dates re-runs apply() against the same DOM, so any
+     previously-added custom rows must be cleared first or they'd pile up */
+  function clearCustomRoutines() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-custom]"), function (row) {
+      row.remove();
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".narr-row"), function (row) {
+      var i = parseInt(row.getAttribute("data-narr-routine"), 10);
+      if (i >= ROUTINE.length) { row.remove(); }
+    });
+    customRoutineCount = 0;
+  }
+
+  function buildAdmin() {
+    var html = "";
+    CATEGORY_LABELS.forEach(function (label, cat) {
+      var idxs = [];
+      ADMIN.forEach(function (a, i) { if (ADMIN_CATEGORY[i] === cat) { idxs.push(i); } });
+      if (!idxs.length) { return; }
+      html += "<div class='cathead'>" + esc(label) + "</div>";
+      idxs.forEach(function (i) {
+        var a = ADMIN[i];
+        html += "<div class='chkwrap'>" +
+          "<label class='chk'>" +
+            "<input type='checkbox' data-admin='" + i + "'>" +
+            "<span>" + a[0] + (a[1] ? "<span class='sub'>" + a[1] + "</span>" : "") + "</span>" +
+          "</label>" +
+          "<div class='narr' data-narr-admin='" + i + "' hidden>" + a[2] + "</div>" +
+        "</div>";
+      });
+    });
+    el("admin-checks").innerHTML = html;
+  }
+
+
+  function renderDayContext() {
+    var name = el("f-name").value.trim();
+    var dv = el("f-date").value;
+    el("page2-meta").innerHTML = (dv || "&mdash;") + (name ? "<br>" + name : "");
+  }
+
+  /* ---------- compute ---------- */
+
+  function wmVal(key, period) {
+    var row = document.querySelector("[data-wm='" + key + "']");
+    if (!row) { return 0; }
+    var c = row.querySelector("[data-p=" + period + "]");
+    var v = c ? parseFloat(c.value) : NaN;
+    return isNaN(v) ? 0 : v;
+  }
+
+  function computeWm() {
+    var out = {};
+    ["week", "month"].forEach(function (p) {
+      var appr = wmVal("appr", p), cons = wmVal("cons", p);
+      var rate = pct(cons, appr);
+      el("wm-rate-" + p).innerHTML = (rate === null) ? "&mdash;" : rate + "%";
+      out[p] = {
+        total: wmVal("total", p),
+        expired: wmVal("expired", p),
+        bd: wmVal("bd", p),
+        appr: appr,
+        cons: cons,
+        donors: wmVal("donors", p),
+        rate: rate
+      };
+    });
+    return out;
+  }
+
+  /* std min has no published source for these 18 tasks - the coordinator
+     enters it themselves, unlike Charter's sourced per-service minutes */
+  /* "HH:MM" (native time input, 24h internally regardless of display) -> minutes since midnight */
+  function clockToMinutes(hhmm) {
+    if (!hhmm) { return null; }
+    var p = hhmm.split(":");
+    var h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+    if (isNaN(h) || isNaN(m)) { return null; }
+    return h * 60 + m;
+  }
+
+  /* minutes since midnight -> "h:MM AM/PM", wrapping past midnight if a task runs overnight */
+  function minutesToClock12(total) {
+    total = ((total % 1440) + 1440) % 1440;
+    var h = Math.floor(total / 60), m = total % 60;
+    var ampm = h < 12 ? "AM" : "PM";
+    var h12 = h % 12; if (h12 === 0) { h12 = 12; }
+    return h12 + ":" + ("0" + m).slice(-2) + " " + ampm;
+  }
+
+  function computeRoutine() {
+    var sels = document.querySelectorAll("[data-routine]");
+    var done = 0, applicable = 0, minutes = 0;
+    Array.prototype.forEach.call(sels, function (s) {
+      s.setAttribute("data-s", s.value);
+      if (s.value === "Completed") { done++; }
+      if (s.value && s.value !== "Deferred" && s.value !== "Cancelled") { applicable++; }
+
+      var row = s.closest("tr");
+      var std = parseFloat(row.querySelector("[data-r=std]").value);
+      var c = parseFloat(row.querySelector("[data-r=count]").value);
+      var cell = row.querySelector("[data-r=sub]");
+      if (isNaN(std) || isNaN(c) || c <= 0) {
+        cell.innerHTML = "&mdash;";
+      } else {
+        var sub = std * c;
+        minutes += sub;
+        cell.textContent = sub;
+      }
+
+      /* Ended = Started + Std min, left blank only if either input is missing.
+         Not gated on status: research rows stay "Ongoing" for the life of the
+         project even after a day's session is done, so gating on status hid
+         Ended for exactly the rows most likely to have one. */
+      var endCell = row.querySelector("[data-r=end]");
+      var startMin = clockToMinutes(row.querySelector("[data-r=start]").value);
+      if (startMin === null || isNaN(std)) {
+        endCell.innerHTML = "&mdash;";
+      } else {
+        endCell.textContent = minutesToClock12(startMin + std);
+      }
+    });
+    return { done: done, applicable: applicable, total: sels.length, minutes: minutes };
+  }
+
+  /* DBI - the detection pool, counted per area in the funnel's first stage */
+  function computeDbi() {
+    var er = num("dbi-er"), icu = num("dbi-icu"), referred = num("dbi-referred");
+    var found = er + icu;
+    return {
+      er: er, icu: icu, found: found, referred: referred,
+      notReferred: Math.max(0, found - referred)
+    };
+  }
+
+  function computeFunnel(dbi) {
+    var r = num("fn-referrals"), e = num("fn-eligible"), b = num("fn-bd"),
+        a = num("fn-approached"), c = num("fn-consented"), d = num("fn-donors");
+
+    var show = function (id, label, n, den) {
+      var p = pct(n, den);
+      el(id).innerHTML = (p === null) ? "&nbsp;" : label + " " + p + "%";
+    };
+
+    /* DBI identified is the sum of the per-area boxes above it */
+    el("fn-dbi").textContent = dbi.found;
+    show("rate-dbiref", "ref.", dbi.referred, dbi.found);
+
+    /* more referred than identified is a counting error, not a 100%+ rate */
+    el("fstage-dbiref").setAttribute("data-state", dbi.referred > dbi.found ? "crit" : "");
+    show("rate-potential", "pot.", r, dbi.referred);
+
+    show("rate-eligible", "elig.", e, r);
+    show("rate-bd", "BD", b, e);
+    show("rate-approached", "appr.", a, b);
+    show("rate-consent", "consent", c, a);
+    show("rate-donor", "conv.", d, c);
+    return r;
+  }
+
+  /* ---------- POMD Master import ---------- */
+
+  function splitLine(line, delim) {
+    var out = [], cur = "", q = false, i;
+    for (i = 0; i < line.length; i++) {
+      var ch = line.charAt(i);
+      if (q) {
+        if (ch === '"') {
+          if (line.charAt(i + 1) === '"') { cur += '"'; i++; }
+          else { q = false; }
+        } else { cur += ch; }
+      } else if (ch === '"') {
+        q = true;
+      } else if (ch === delim) {
+        out.push(cur); cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out.map(function (c) { return c.trim(); });
+  }
+
+  function parseTable(text) {
+    var lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+      .filter(function (l) { return l.trim() !== ""; });
+    if (lines.length < 2) { return null; }
+    var delim = (lines[0].indexOf("\t") > -1) ? "\t" : ",";
+    return lines.map(function (l) { return splitLine(l, delim); });
+  }
+
+  function normKey(s) { return String(s).toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+
+  function colIndex(headers, wanted) {
+    var w = normKey(wanted), i;
+    for (i = 0; i < headers.length; i++) {
+      if (normKey(headers[i]) === w) { return i; }
+    }
+    for (i = 0; i < headers.length; i++) {
+      if (normKey(headers[i]).indexOf(w) > -1) { return i; }
+    }
+    return -1;
+  }
+
+  function isYes(v) { return /^(y|yes|true|1)\b/i.test(String(v).trim()); }
+
+  /* the Master stores dates as 2026-01-03 or 1/3/2026 - normalise to ISO */
+  function isoDate(v) {
+    var s = String(v).trim();
+    if (!s) { return ""; }
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) {
+      return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+    }
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) {
+      return m[3] + "-" + ("0" + m[1]).slice(-2) + "-" + ("0" + m[2]).slice(-2);
+    }
+    return s;
+  }
+
+  function status(msg, cls) {
+    var box = el("imp-status");
+    box.textContent = msg;
+    box.className = "imp-status" + (cls ? " " + cls : "");
+  }
+
+  function runImport() {
+    var text = el("imp-paste").value;
+    if (!text.trim()) { status("Nothing pasted yet.", "bad"); return; }
+
+    var table = parseTable(text);
+    if (!table) { status("Could not read that - paste the header row plus at least one case row.", "bad"); return; }
+
+    var headers = table[0];
+    var iDate  = colIndex(headers, "DATE OF REFERRAL");
+    if (iDate === -1) {
+      status("No 'DATE OF REFERRAL' column found. Include the header row from the Master tab.", "bad");
+      return;
+    }
+
+    var iCat   = colIndex(headers, "GCS CATEGORY");
+    var iFinal = colIndex(headers, "FINAL OUTCOME");
+    var iBd    = colIndex(headers, "BRAIN DEATH DECLARED");
+    var iAppr  = colIndex(headers, "FAMILY APPROACHED");
+    var iCons  = colIndex(headers, "FAMILY CONSENT");
+    var iOrg   = colIndex(headers, "ORGANS DONATED");
+    var iExp   = colIndex(headers, "EXPIRED");
+
+    var sheetDate = el("f-date").value;
+    var range = weekRange(sheetDate);
+    var month = sheetDate ? sheetDate.slice(0, 7) : "";
+
+    var cell = function (row, idx) { return (idx > -1 && row[idx] !== undefined) ? String(row[idx]).trim() : ""; };
+
+    var iso = function (d) {
+      return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) +
+             "-" + ("0" + d.getDate()).slice(-2);
+    };
+    var weekStart = range ? iso(range.start) : "";
+    var weekEnd   = range ? iso(range.end) : "";
+
+    var blank = function () { return { total: 0, expired: 0, bd: 0, appr: 0, cons: 0, donors: 0 }; };
+    var week = blank(), mon = blank(), today = blank();
+    var parsed = 0, undated = 0;
+
+    table.slice(1).forEach(function (row) {
+      if (!row.join("").trim()) { return; }
+      parsed++;
+
+      var d = isoDate(cell(row, iDate));
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { undated++; return; }
+
+      var isDonor = (function () {
+        var o = cell(row, iOrg);
+        return (o && !/^(-|n\/?a|none)$/i.test(o)) ||
+               cell(row, iFinal).toLowerCase().indexOf("donor") > -1;
+      })();
+
+      var add = function (b) {
+        b.total++;
+        if (/^yes/i.test(cell(row, iExp))) { b.expired++; }
+        if (isYes(cell(row, iBd)))   { b.bd++; }
+        if (isYes(cell(row, iAppr))) { b.appr++; }
+        if (isYes(cell(row, iCons))) { b.cons++; }
+        if (isDonor) { b.donors++; }
+      };
+
+      if (weekStart && d >= weekStart && d <= weekEnd) { add(week); }
+      if (month && d.slice(0, 7) === month) { add(mon); }
+      /* the funnel stays a daily, POTENTIAL-only count */
+      if (sheetDate && d === sheetDate && normKey(cell(row, iCat)) === "POTENTIAL") { add(today); }
+    });
+
+    if (!parsed) { status("No data rows found under that header.", "bad"); return; }
+
+    var fill = function (key, period, v) {
+      var r = document.querySelector("[data-wm='" + key + "']");
+      if (r) { r.querySelector("[data-p=" + period + "]").value = v; }
+    };
+    ["total", "expired", "bd", "appr", "cons", "donors"].forEach(function (k) {
+      fill(k, "week", week[k]);
+      fill(k, "month", mon[k]);
+    });
+
+    /* daily funnel, POTENTIAL only - 'escalated to eligible' cannot be derived,
+       since a case re-graded Eligible no longer matches a potential-only filter */
+    el("fn-referrals").value  = today.total;
+    el("fn-bd").value         = today.bd;
+    el("fn-approached").value = today.appr;
+    el("fn-consented").value  = today.cons;
+    el("fn-donors").value     = today.donors;
+
+    compute();
+
+    var note = "Read " + parsed + " row" + (parsed === 1 ? "" : "s") + ". Week to date: " +
+               week.total + " referred, " + week.cons + " consent" + (week.cons === 1 ? "" : "s") +
+               ". Month to date: " + mon.total + " referred, " + mon.cons +
+               " consent" + (mon.cons === 1 ? "" : "s") + ". Daily funnel: " + today.total +
+               " potential case" + (today.total === 1 ? "" : "s") + " dated " + (sheetDate || "-") + ".";
+    if (undated) {
+      note += " " + undated + " row(s) had an unreadable referral date and were left out of every total.";
+    }
+    note += " Names discarded on read.";
+    status(note, "good");
+  }
+
+  /* ---------- narrative ---------- */
+
+  function narrateDbi(dbi) {
+    if (!dbi.found && !dbi.referred) { return ""; }
+
+    var s = dbi.found + " patient" + (dbi.found === 1 ? "" : "s") + " meeting DBI criteria " +
+            (dbi.found === 1 ? "was" : "were") + " identified under ER and ICU monitoring";
+    var unitBits = [];
+    if (dbi.icu) { unitBits.push(dbi.icu + " in ICU"); }
+    if (dbi.er)  { unitBits.push(dbi.er + " in ER"); }
+    if (unitBits.length) { s += ", " + listPhrase(unitBits); }
+    s += ".";
+
+    s += " " + dbi.referred + " referred to SHARE.";
+
+    if (dbi.notReferred) {
+      s += " " + dbi.notReferred + " case" + (dbi.notReferred === 1 ? " was" : "s were") +
+           " not referred.";
+    }
+    return s;
+  }
+
+  function narrateWm(wm) {
+    var out = [];
+
+    ["week", "month"].forEach(function (p) {
+      var v = wm[p];
+      if (!(v.total || v.expired || v.bd || v.appr || v.cons || v.donors)) { return; }
+
+      var label = (p === "week") ? "week to date" : "month to date";
+      var s = "For the " + label + ", the POMD Referral Master records " + v.total +
+              " patient" + (v.total === 1 ? "" : "s") + " referred";
+      var bits = [];
+      if (v.expired) { bits.push(v.expired + " expired"); }
+      if (v.bd) { bits.push(v.bd + " with brain death declared"); }
+      if (v.appr) { bits.push(v.appr + " famil" + (v.appr === 1 ? "y" : "ies") + " approached"); }
+      if (v.cons) { bits.push(v.cons + " consent" + (v.cons === 1 ? "" : "s") + " obtained"); }
+      if (v.donors) { bits.push(v.donors + " actual donor" + (v.donors === 1 ? "" : "s")); }
+      if (bits.length) { s += ", of which " + listPhrase(bits); }
+      s += ".";
+      out.push(s);
+    });
+
+    return out;
+  }
+
+  function narrateFunnel() {
+    var r = num("fn-referrals"), e = num("fn-eligible"), b = num("fn-bd"),
+        a = num("fn-approached"), c = num("fn-consented"), d = num("fn-donors");
+    if (!(r || e || b || a || c || d)) { return ""; }
+
+    var s = r + " potential organ donor" + (r === 1 ? "" : "s") + " tracked, " +
+            e + " escalated to eligible, " +
+            b + " with brain death declared, " +
+            a + " famil" + (a === 1 ? "y" : "ies") + " approached, " +
+            c + " consent" + (c === 1 ? "" : "s") + " obtained, " +
+            d + " actual donor" + (d === 1 ? "" : "s") + ".";
+    return s;
+  }
+
+  function narrateCharter() {
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll("#charter-body tr"), function (row, i) {
+      var served = parseFloat(row.querySelector("[data-cc=served]").value) || 0;
+      if (!served) { return; }
+      var hces = parseFloat(row.querySelector("[data-cc=hces]").value);
+      var name = softLower(CHARTER[i][0]);
+      var s = "Served " + served + " client" + (served === 1 ? "" : "s") + " for " + name +
+              " (charter time " + CHARTER[i][1] + ")";
+      if (!isNaN(hces) && hces) { s += "; " + hces + " HCES form" + (hces === 1 ? "" : "s") + " issued"; }
+      out.push(s + ".");
+    });
+    return out;
+  }
+
+  function emptyStatusGroups() {
+    return { Completed: [], Ongoing: [], Pending: [], Deferred: [], Cancelled: [] };
+  }
+
+  /* buckets both checklists by their forced-fit responsibility category
+     (see ROUTINE_CATEGORY / ADMIN_CATEGORY), so the narrative report can
+     compile one paragraph per category instead of two flat paragraphs.
+     Coordinator-added custom rows have no category and land in "extra" */
+  function narrateChecklists() {
+    var adminByCat = CATEGORY_LABELS.map(function () { return []; });
+    var routineByCat = CATEGORY_LABELS.map(emptyStatusGroups);
+    var researchByCat = CATEGORY_LABELS.map(function () { return []; });
+    var extraGroups = emptyStatusGroups();
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-admin]"), function (chk) {
+      var i = parseInt(chk.getAttribute("data-admin"), 10);
+      var holder = document.querySelector("[data-narr-admin='" + i + "']");
+      if (holder) { holder.hidden = !chk.checked; }
+      if (chk.checked) { adminByCat[ADMIN_CATEGORY[i]].push(ADMIN[i][2]); }
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-routine]"), function (sel) {
+      var i = parseInt(sel.getAttribute("data-routine"), 10);
+      var holder = document.querySelector("[data-narr-routine='" + i + "']");
+      var row = sel.closest("tr");
+      if (row.classList.contains("routine-hidden")) { return; }
+      var phrase = routinePhraseFor(i, row);
+      var research = researchProjectName(i);
+      var isPrep = research && sel.value === "Ongoing";
+
+      var statusSentence = !phrase ? ""
+        : isPrep ? researchPrepSentence(research)
+        : routineSentence(phrase, sel.value);
+
+      var std = parseFloat(row.querySelector("[data-r=std]").value);
+      var c = parseFloat(row.querySelector("[data-r=count]").value);
+      var countSentence = "";
+      if (!isNaN(std) && !isNaN(c) && c > 0) {
+        var sub = std * c;
+        countSentence = (c === 1)
+          ? "Logged 1 time, " + formatDuration(std) + "."
+          : "Logged " + c + " times, " + formatDuration(std) + " each, " + formatDuration(sub) + " total.";
+      }
+
+      var durationSentence = "";
+      if (!countSentence && !isNaN(std)) {
+        durationSentence = "Took " + formatDuration(std) + ".";
+      }
+
+      var timeSentence = "";
+      var startMin = clockToMinutes(row.querySelector("[data-r=start]").value);
+      if (startMin !== null) {
+        var endText = row.querySelector("[data-r=end]").textContent;
+        timeSentence = (endText && endText !== "—")
+          ? "Started at " + minutesToClock12(startMin) + ", ended at " + endText + "."
+          : "Started at " + minutesToClock12(startMin) + ".";
+      }
+
+      var combined = sentences([statusSentence, countSentence, durationSentence, timeSentence]);
+
+      if (holder) {
+        holder.hidden = !combined;
+        holder.querySelector(".narr").textContent = combined;
+      }
+
+      var cat = ROUTINE_CATEGORY[i]; // undefined for coordinator-added custom rows
+
+      if (cat === undefined) {
+        if (phrase && !isPrep && extraGroups[sel.value]) { extraGroups[sel.value].push(phrase); }
+      } else if (isPrep) {
+        researchByCat[cat].push(statusSentence);
+      } else if (phrase && routineByCat[cat][sel.value]) {
+        routineByCat[cat][sel.value].push(phrase);
+      }
+    });
+
+    return { adminByCat: adminByCat, routineByCat: routineByCat, researchByCat: researchByCat, extraGroups: extraGroups };
+  }
+
+  /* the routine items collapse by status so the paragraph reads as prose,
+     not as one near-identical sentence per task */
+  function routineProse(g, researchLines) {
+    var out = [];
+    var many = function (list) { return list.length !== 1; };
+
+    if (g.Completed.length) {
+      out.push("Completed " + listPhrase(g.Completed) + ".");
+    }
+    if (g.Ongoing.length) {
+      out.push(capFirst(listPhrase(g.Ongoing)) + (many(g.Ongoing) ? " are" : " is") +
+               " ongoing and carr" + (many(g.Ongoing) ? "y" : "ies") + " over to the next day.");
+    }
+    if (g.Pending.length) {
+      out.push(capFirst(listPhrase(g.Pending)) + (many(g.Pending) ? " remain" : " remains") +
+               " pending and ha" + (many(g.Pending) ? "ve" : "s") + " not been started.");
+    }
+    if (g.Deferred.length) {
+      out.push(capFirst(listPhrase(g.Deferred)) + (many(g.Deferred) ? " were" : " was") +
+               " deferred to a later date.");
+    }
+    if (g.Cancelled.length) {
+      out.push(capFirst(listPhrase(g.Cancelled)) + (many(g.Cancelled) ? " were" : " was") +
+               " cancelled for the day.");
+    }
+    if (researchLines && researchLines.length) {
+      out = out.concat(researchLines);
+    }
+    return sentences(out);
+  }
+
+  function renderNarrative() {
+    var lists   = narrateChecklists();
+    var refs    = narrateWm(computeWm());
+    var funnel  = narrateFunnel();
+    var charter = narrateCharter();
+    var others  = el("f-others").value.trim();
+
+    var name    = el("f-name").value.trim();
+    var date    = el("f-date").value;
+    var roleKey = document.querySelector("input[name=role]:checked").value;
+    var role    = ROLE_LABEL[roleKey] || CUSTOM_ROLE_LABELS[roleKey] || roleKey.replace("_", "/");
+
+    /* --- opening: who, in what role, on which day --- */
+    var html = "";
+    if (date || name) {
+      html += "<p><strong>" + esc(name || "The transplant coordinator") + "</strong>, " +
+              role + ", on duty" + (date ? " on " + date : "") +
+              " for the 7:00 AM&ndash;3:00 PM charter shift (" + formatDuration(SHIFT_MIN) + ").</p>";
+    }
+
+    /* --- DBI detection pool, above referral --- */
+    var dbiText = narrateDbi(computeDbi());
+    html += para("Devastating brain injury monitoring", dbiText);
+
+    /* --- weekly and monthly position from the Master --- */
+    html += para("Weekly &amp; monthly update", sentences(refs));
+
+    /* --- funnel --- */
+    html += para("Funnel summary", funnel);
+
+    /* --- charter --- */
+    var ccLead = charter.length
+      ? "Citizen&#39;s Charter services were delivered against the published OTSU charter times."
+      : "";
+    html += para("Citizen&#39;s Charter services", sentences([ccLead].concat(charter)));
+
+    /* --- routine + admin, one paragraph per RN responsibility category.
+       Per-task narration already states each task's own start time and
+       duration (see narrateChecklists) - no day-wide total here --- */
+    var anyCatContent = false;
+    CATEGORY_LABELS.forEach(function (label, cat) {
+      var routineText = routineProse(lists.routineByCat[cat], lists.researchByCat[cat]);
+      var adminText = sentences(lists.adminByCat[cat]);
+      var combined = sentences([routineText, adminText]);
+      if (combined) { anyCatContent = true; }
+      html += para(esc(label), combined);
+    });
+    var extraText = routineProse(lists.extraGroups, []);
+    if (extraText) { anyCatContent = true; }
+    html += para("Additional tasks", extraText);
+
+    /* --- free text, kept verbatim --- */
+    if (others) {
+      html += para("Other activities", esc(others).replace(/\n/g, "<br>"));
+    }
+
+    if (!dbiText && !refs.length && !funnel && !charter.length && !anyCatContent && !others) {
+      html = "<p class='empty'>Nothing logged yet. Tick a task, set a status, or enter a count and its narrative appears here automatically.</p>";
+    }
+
+    /* once the coordinator starts hand-editing, stop overwriting their
+       wording every time an unrelated field changes and re-triggers compute() */
+    if (!narrativeEdited) {
+      el("narrative-out").innerHTML = html;
+    }
+  }
+
+  /* flags rows/sections with nothing entered, so print can hide them -
+     checkboxes are handled in CSS directly via :has(input:checked) */
+  function markPrintVisibility() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-routine]"), function (sel) {
+      var row = sel.closest("tr");
+      var std = row.querySelector("[data-r=std]").value.trim();
+      var count = row.querySelector("[data-r=count]").value.trim();
+      var start = row.querySelector("[data-r=start]").value.trim();
+      var empty = !sel.value && !std && !count && !start;
+      row.setAttribute("data-empty", empty ? "1" : "");
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("#charter-body tr"), function (row) {
+      var any = Array.prototype.some.call(row.querySelectorAll("input"), function (inp) {
+        return inp.value.trim() !== "";
+      });
+      row.setAttribute("data-empty", any ? "" : "1");
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-wm]"), function (row) {
+      var inputs = row.querySelectorAll("input");
+      if (!inputs.length) { return; }
+      var any = Array.prototype.some.call(inputs, function (inp) { return inp.value.trim() !== ""; });
+      row.setAttribute("data-empty", any ? "" : "1");
+    });
+
+    el("sec-others").setAttribute("data-empty", el("f-others").value.trim() ? "" : "1");
+
+    /* category headers print only if something under them survived the
+       filters above (routine data-empty, admin checked state) */
+    Array.prototype.forEach.call(document.querySelectorAll("#routine-body .cathead-row"), function (head) {
+      var node = head.nextElementSibling, anyVisible = false;
+      while (node && !node.classList.contains("cathead-row")) {
+        if (node.tagName === "TR" && !node.classList.contains("narr-row") &&
+            node.getAttribute("data-empty") !== "1" && !node.classList.contains("routine-hidden")) {
+          anyVisible = true;
+        }
+        node = node.nextElementSibling;
+      }
+      head.setAttribute("data-empty", anyVisible ? "" : "1");
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("#admin-checks .cathead"), function (head) {
+      var node = head.nextElementSibling, anyVisible = false;
+      while (node && !node.classList.contains("cathead")) {
+        if (node.classList.contains("chkwrap")) {
+          var cb = node.querySelector("input[type=checkbox]");
+          if (cb && cb.checked) { anyVisible = true; }
+        }
+        node = node.nextElementSibling;
+      }
+      head.setAttribute("data-empty", anyVisible ? "" : "1");
+    });
+  }
+
+  function compute() {
+    computeRoutine();
+    computeFunnel(computeDbi());
+    computeWm();
+    renderPeriod();
+    markPrintVisibility();
+
+    renderNarrative();
+  }
+
+  /* ---------- persistence ---------- */
+
+  function storageKey() {
+    return "share-tc-dash:" + (el("f-date").value || "undated");
+  }
+
+  /* ---------- cloud sync (Apps Script + Sheets backend) ----------
+     Optional: with no URL configured, everything works exactly as before,
+     localStorage-only. With a URL, localStorage stays as the instant local
+     cache/offline fallback, and the Sheet becomes the reachable-from-
+     anywhere copy. POST uses text/plain to dodge the CORS preflight that
+     Apps Script Web Apps don't answer (a well-known Apps Script quirk) -
+     the body is still JSON, doPost() just reads it off postData.contents
+     regardless of the declared content type. */
+  var SYNC_URL_KEY = "share-tc-dash:sync-url";
+
+  function getSyncUrl() { return localStorage.getItem(SYNC_URL_KEY) || ""; }
+
+  function nowHHMM() {
+    var t = new Date();
+    return String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0");
+  }
+
+  function setSyncStatus(msg, cls) {
+    var box = el("sync-status");
+    if (!box) { return; }
+    box.textContent = msg;
+    box.className = "imp-status" + (cls ? " " + cls : "");
+  }
+
+  function syncSaveToCloud(dateStr, data) {
+    var url = getSyncUrl();
+    if (!url) { return; }
+    setSyncStatus("Syncing…");
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ date: dateStr, data: data })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok) {
+        setSyncStatus("Synced to cloud " + nowHHMM() + ".", "good");
+      } else {
+        setSyncStatus("Cloud save did not confirm - check the Web App URL.", "bad");
+      }
+    }).catch(function (e) {
+      setSyncStatus("Could not reach cloud backend (" + e.message + ") - saved locally only.", "bad");
+    });
+  }
+
+  function syncLoadFromCloud(dateStr) {
+    var url = getSyncUrl();
+    if (!url) { return Promise.resolve(null); }
+    var sep = url.indexOf("?") > -1 ? "&" : "?";
+    return fetch(url + sep + "date=" + encodeURIComponent(dateStr))
+      .then(function (r) { return r.json(); })
+      .then(function (res) { return (res && res.found) ? res.data : null; })
+      .catch(function () { return null; });
+  }
+
+  /* ---------- local file save/load, and Word export ----------
+     Real files on disk, independent of browser storage - portable,
+     backup-able, movable between machines with no cloud involved. */
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function saveDayToFile() {
+    var date = el("f-date").value || "undated";
+    var blob = new Blob([JSON.stringify(collect(), null, 2)], { type: "application/json" });
+    downloadBlob(blob, "share-tc-dash-" + date + ".json");
+  }
+
+  function loadDayFromFile(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        apply(data);
+        renderDayContext();
+        compute();
+        el("saved-note").textContent = "Loaded from file: " + file.name;
+      } catch (err) {
+        el("saved-note").textContent = "Could not read that file - not a valid saved-day file.";
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  /* Word opens HTML given a .doc extension and this specific namespace
+     preamble - a long-standing, genuinely supported Word behavior, not a
+     hack. Produces a real file Word/LibreOffice/Google Docs (via import)
+     all open correctly, with no library, build step, or network needed. */
+  function exportNarrativeAsWord() {
+    var date = el("f-date").value || "undated";
+    var name = el("f-name").value.trim();
+    var content = el("narrative-out").innerHTML;
+    var html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+      "xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
+      "<head><meta charset='utf-8'><title>Narrative Accomplishment Report</title>" +
+      "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->" +
+      "<style>" +
+      "body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#14181c;}" +
+      "h2{font-size:14pt;margin:0 0 12pt;}" +
+      "h3{font-size:10.5pt;text-transform:uppercase;letter-spacing:1px;color:#0f6b5c;margin:14pt 0 4pt;}" +
+      "p{margin:0 0 10pt;line-height:1.4;}" +
+      "</style></head><body>" +
+      "<h2>Narrative Accomplishment Report &mdash; SHARE TC Daily KPI</h2>" +
+      "<p><strong>" + esc(date) + (name ? " &middot; " + esc(name) : "") + "</strong></p>" +
+      content +
+      "</body></html>";
+    var blob = new Blob(["﻿", html], { type: "application/msword" });
+    downloadBlob(blob, "SHARE-TC-Narrative-" + date + ".doc");
+  }
+
+  function collect() {
+    var data = { fields: {}, wm: {}, routine: [], admin: [], charter: [] };
+
+    ["f-date", "f-name", "f-others", "fn-referrals", "fn-eligible", "fn-bd",
+     "fn-approached", "fn-consented", "fn-donors"]
+      .concat(DBI_COUNTERS).forEach(function (id) {
+        data.fields[id] = el(id).value;
+      });
+    data.fields.role = document.querySelector("input[name=role]:checked").value;
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-wm] input"), function (c) {
+      var key = c.closest("[data-wm]").getAttribute("data-wm");
+      data.wm[key + ":" + c.getAttribute("data-p")] = c.value;
+    });
+
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-routine]"), function (sel) {
+      var row = sel.closest("tr");
+      var i = parseInt(sel.getAttribute("data-routine"), 10);
+      var entry = {
+        std: row.querySelector("[data-r=std]").value,
+        count: row.querySelector("[data-r=count]").value,
+        start: row.querySelector("[data-r=start]").value,
+        status: sel.value
+      };
+      if (row.hasAttribute("data-custom")) {
+        entry.name = row.querySelector("[data-r=name]").value;
+      }
+      if (row.classList.contains("routine-hidden")) {
+        entry.hidden = true;
+      }
+      data.routine[i] = entry;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-admin]"), function (c) {
+      data.admin[parseInt(c.getAttribute("data-admin"), 10)] = c.checked;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#charter-body tr"), function (row) {
+      var o = {};
+      Array.prototype.forEach.call(row.querySelectorAll("input"), function (c) {
+        o[c.getAttribute("data-cc")] = c.value;
+      });
+      data.charter.push(o);
+    });
+    if (narrativeEdited) {
+      data.narrativeEdited = true;
+      data.narrativeHtml = el("narrative-out").innerHTML;
+    }
+    return data;
+  }
+
+  function apply(data) {
+    if (!data) { return; }
+
+    narrativeEdited = !!data.narrativeEdited;
+    el("btn-reset-narrative").hidden = !narrativeEdited;
+    el("btn-edit-narrative").textContent = "Edit narrative";
+    el("narrative-out").removeAttribute("contenteditable");
+    if (narrativeEdited && data.narrativeHtml !== undefined) {
+      el("narrative-out").innerHTML = data.narrativeHtml;
+    }
+
+    Object.keys(data.fields || {}).forEach(function (id) {
+      if (id === "role") { return; }
+      if (el(id)) { el(id).value = data.fields[id]; }
+    });
+    if (data.fields && data.fields.role) {
+      var r = document.querySelector("input[name=role][value=" + data.fields.role + "]");
+      if (r) { r.checked = true; }
+    }
+
+    Object.keys(data.wm || {}).forEach(function (k) {
+      var parts = k.split(":");
+      var row = document.querySelector("[data-wm='" + parts[0] + "']");
+      if (!row) { return; }
+      var c = row.querySelector("[data-p=" + parts[1] + "]");
+      if (c) { c.value = data.wm[k]; }
+    });
+
+    /* recreate any coordinator-added rows from a saved day before mapping
+       values onto them by position; clear first so switching dates doesn't
+       pile new rows on top of a previous date's custom rows. Un-hide fixed
+       rows too, since a hide is per-day and a different date may not share it */
+    clearCustomRoutines();
+    showAllHiddenRoutines();
+    var savedExtra = (data.routine || []).length - ROUTINE.length;
+    for (var k = 0; k < savedExtra; k++) {
+      var savedEntry = data.routine[ROUTINE.length + k];
+      addCustomRoutine(savedEntry && savedEntry.name ? savedEntry.name : "");
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-routine]"), function (sel) {
+      var i = parseInt(sel.getAttribute("data-routine"), 10);
+      var v = (data.routine || [])[i];
+      if (v === undefined) { return; }
+      var row = sel.closest("tr");
+      if (v && typeof v === "object") {
+        row.querySelector("[data-r=std]").value = v.std || "";
+        row.querySelector("[data-r=count]").value = v.count || "";
+        row.querySelector("[data-r=start]").value = v.start || "";
+        sel.value = v.status || "";
+        if (v.hidden) { hideRoutine(i); }
+      } else {
+        /* a day saved before std min / count existed on Daily Routine */
+        sel.value = v || "";
+      }
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-admin]"), function (c) {
+      var i = parseInt(c.getAttribute("data-admin"), 10);
+      var v = (data.admin || [])[i];
+      if (v !== undefined) { c.checked = v; }
+    });
+
+    var cRows = document.querySelectorAll("#charter-body tr");
+    (data.charter || []).forEach(function (o, i) {
+      if (!cRows[i]) { return; }
+      Object.keys(o).forEach(function (f) {
+        var c = cRows[i].querySelector("[data-cc=" + f + "]");
+        if (c) { c.value = o[f]; }
+      });
+    });
+  }
+
+  function save(silent) {
+    var data = collect();
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(data));
+      var t = new Date();
+      el("saved-note").textContent = "Saved " +
+        String(t.getHours()).padStart(2, "0") + ":" +
+        String(t.getMinutes()).padStart(2, "0") +
+        " - " + (el("f-date").value || "undated");
+    } catch (e) {
+      if (!silent) { el("saved-note").textContent = "Could not save - storage unavailable"; }
+    }
+    syncSaveToCloud(el("f-date").value, data);
+  }
+
+  /* local storage first (instant, works offline), then reconciled against
+     the cloud copy a moment later if a sync URL is configured */
+  function load() {
+    var localOk;
+    try {
+      var raw = localStorage.getItem(storageKey());
+      if (!raw) {
+        clearCustomRoutines();
+        showAllHiddenRoutines();
+        narrativeEdited = false;
+        el("btn-reset-narrative").hidden = true;
+        el("btn-edit-narrative").textContent = "Edit narrative";
+        el("narrative-out").removeAttribute("contenteditable");
+        el("saved-note").textContent = "No saved entry for this date";
+        localOk = false;
+      } else {
+        apply(JSON.parse(raw));
+        el("saved-note").textContent = "Loaded saved entry for " + el("f-date").value;
+        localOk = true;
+      }
+    } catch (e) {
+      localOk = false;
+    }
+
+    var url = getSyncUrl();
+    if (url) {
+      var dateStr = el("f-date").value;
+      setSyncStatus("Checking cloud for " + dateStr + "…");
+      syncLoadFromCloud(dateStr).then(function (cloudData) {
+        if (dateStr !== el("f-date").value) { return; } // date changed again while this was in flight
+        if (cloudData) {
+          apply(cloudData);
+          renderDayContext();
+          compute();
+          try { localStorage.setItem(storageKey(), JSON.stringify(cloudData)); } catch (e) { /* cache best-effort */ }
+          el("saved-note").textContent = "Loaded from cloud for " + dateStr;
+          setSyncStatus("Loaded from cloud " + nowHHMM() + ".", "good");
+        } else {
+          setSyncStatus(localOk
+            ? "No cloud entry for " + dateStr + " yet - showing this browser's local copy."
+            : "No cloud or local entry for " + dateStr + ".", "");
+        }
+      });
+    }
+
+    return localOk;
+  }
+
+  /* ---------- wire up ---------- */
+
+  buildWm();
+  buildCharter();
+  buildRoutine();
+  buildAdmin();
+  loadCustomRoles();
+
+  var today = new Date();
+  el("f-date").value = today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
+
+  load();
+  renderDayContext();
+  compute();
+
+  autoFetchWm();
+  setInterval(autoFetchWm, WM_FETCH_INTERVAL_MS);
+  el("btn-wm-refresh").addEventListener("click", autoFetchWm);
+
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "f-date") { load(); renderDayContext(); }
+    if (e.target.id === "f-name") { renderDayContext(); }
+    compute();
+  });
+
+  document.addEventListener("change", function (e) {
+    compute();
+  });
+
+  el("btn-add-role").addEventListener("click", function () {
+    var input = el("new-role-name");
+    addRole(input.value);
+    saveCustomRoles();
+    input.value = "";
+  });
+
+  el("btn-add-routine").addEventListener("click", function () {
+    addCustomRoutine("");
+    compute();
+    var inputs = document.querySelectorAll(".routine-name-input");
+    if (inputs.length) { inputs[inputs.length - 1].focus(); }
+  });
+
+  document.addEventListener("click", function (e) {
+    var removeBtn = e.target.closest("[data-remove-routine]");
+    if (removeBtn) {
+      removeCustomRoutine(parseInt(removeBtn.getAttribute("data-remove-routine"), 10));
+      compute();
+      return;
+    }
+    var hideBtn = e.target.closest("[data-hide-routine]");
+    if (hideBtn) {
+      hideRoutine(parseInt(hideBtn.getAttribute("data-hide-routine"), 10));
+      compute();
+      return;
+    }
+  });
+
+  el("btn-show-hidden-routines").addEventListener("click", function () {
+    showAllHiddenRoutines();
+    compute();
+  });
+
+  el("sync-url").value = getSyncUrl();
+  if (getSyncUrl()) {
+    el("sync-settings").open = true;
+    setSyncStatus("Cloud sync configured. Checking…");
+  }
+
+  el("btn-sync-save-url").addEventListener("click", function () {
+    var url = el("sync-url").value.trim();
+    if (!url) { setSyncStatus("Enter a Web App URL first, or use Clear to remove sync.", "bad"); return; }
+    localStorage.setItem(SYNC_URL_KEY, url);
+    setSyncStatus("Saved. Checking connection…");
+    load();
+  });
+
+  el("btn-sync-clear-url").addEventListener("click", function () {
+    localStorage.removeItem(SYNC_URL_KEY);
+    el("sync-url").value = "";
+    setSyncStatus("No cloud backend configured - using this browser's storage only.");
+  });
+
+  el("btn-import").addEventListener("click", runImport);
+  el("btn-import-clear").addEventListener("click", function () {
+    el("imp-paste").value = "";
+    status("");
+  });
+
+  el("btn-edit-narrative").addEventListener("click", function () {
+    var box = el("narrative-out");
+    var editing = box.getAttribute("contenteditable") === "true";
+    if (editing) {
+      box.removeAttribute("contenteditable");
+      el("btn-edit-narrative").textContent = "Edit narrative";
+      save(true);
+    } else {
+      narrativeEdited = true;
+      box.setAttribute("contenteditable", "true");
+      box.focus();
+      el("btn-edit-narrative").textContent = "Done editing";
+      el("btn-reset-narrative").hidden = false;
+    }
+  });
+
+  el("btn-reset-narrative").addEventListener("click", function () {
+    narrativeEdited = false;
+    el("narrative-out").removeAttribute("contenteditable");
+    el("btn-edit-narrative").textContent = "Edit narrative";
+    el("btn-reset-narrative").hidden = true;
+    renderNarrative();
+    save(true);
+  });
+
+  el("btn-copy").addEventListener("click", function () {
+    var txt = el("narrative-out").innerText;
+    var btn = el("btn-copy");
+    var done = function (ok) {
+      btn.textContent = ok ? "Copied" : "Copy failed";
+      setTimeout(function () { btn.textContent = "Copy narrative"; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); });
+    } else {
+      done(false);
+    }
+  });
+
+  el("btn-print").addEventListener("click", function () { save(true); window.print(); });
+  el("btn-save").addEventListener("click", function () { save(false); });
+  el("btn-save-file").addEventListener("click", saveDayToFile);
+  el("btn-load-file").addEventListener("click", function () { el("load-file-input").click(); });
+  el("load-file-input").addEventListener("change", function (e) {
+    if (e.target.files && e.target.files[0]) { loadDayFromFile(e.target.files[0]); }
+    e.target.value = "";
+  });
+  el("btn-export-word").addEventListener("click", exportNarrativeAsWord);
+  el("btn-clear").addEventListener("click", function () {
+    if (!window.confirm("Clear every entry on this sheet for " + (el("f-date").value || "this date") + "?")) { return; }
+    try { localStorage.removeItem(storageKey()); } catch (e) {}
+    Array.prototype.forEach.call(document.querySelectorAll("input,select,textarea"), function (c) {
+      if (c.type === "checkbox") { c.checked = false; }
+      else if (c.type === "radio") { /* keep role */ }
+      else if (c.id !== "f-date") { c.value = ""; }
+    });
+    el("saved-note").textContent = "Cleared";
+    renderDayContext();
+    compute();
+  });
+})();
+</script>
+
+</body>
+</html>
