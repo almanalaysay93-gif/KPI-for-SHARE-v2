@@ -653,6 +653,11 @@
     .sec:has(> .sechead .print-toggle input:not(:checked)) { display: none; }
   }
 
+  .datewrap { display: flex; gap: 6px; align-items: center; }
+  .datewrap #f-date-text { flex: 1 1 auto; min-width: 0; }
+  .datewrap #f-date { flex: 0 0 auto; width: 40px; padding-left: 4px; padding-right: 4px; color: transparent; }
+  @media print { .datewrap { display: block; } }
+
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
   }
@@ -750,8 +755,12 @@
 
   <div class="identity">
     <div class="idcell">
-      <label class="lbl" for="f-date">Date</label>
-      <input type="date" id="f-date">
+      <label class="lbl" for="f-date-text">Date</label>
+      <div class="datewrap">
+        <input type="text" id="f-date-text" placeholder="mm/dd/yy" inputmode="numeric"
+               autocomplete="off" maxlength="10">
+        <input type="date" id="f-date" class="no-print" aria-label="Pick date">
+      </div>
     </div>
     <div class="idcell">
       <label class="lbl" for="f-name">Coordinator</label>
@@ -2408,6 +2417,27 @@
     return data;
   }
 
+  /* the sheet shows the date as mm/dd/yy; #f-date keeps the ISO value the rest of the code reads */
+  function fmtMdy(iso) {
+    var p = String(iso || "").split("-");
+    if (p.length !== 3) { return ""; }
+    return p[1] + "/" + p[2] + "/" + p[0].slice(2);
+  }
+
+  function parseMdy(text) {
+    var m = String(text || "").trim().match(/^(\d{1,2})\D(\d{1,2})\D(\d{2}|\d{4})$/);
+    if (!m) { return ""; }
+    var mo = +m[1], da = +m[2], yr = +m[3];
+    if (m[3].length === 2) { yr += 2000; }
+    var d = new Date(yr, mo - 1, da);
+    if (d.getFullYear() !== yr || d.getMonth() !== mo - 1 || d.getDate() !== da) { return ""; }
+    return yr + "-" + String(mo).padStart(2, "0") + "-" + String(da).padStart(2, "0");
+  }
+
+  function syncDateText() {
+    el("f-date-text").value = fmtMdy(el("f-date").value);
+  }
+
   function apply(data) {
     if (!data) { return; }
 
@@ -2427,6 +2457,7 @@
       var r = document.querySelector("input[name=role][value=" + data.fields.role + "]");
       if (r) { r.checked = true; }
     }
+    syncDateText();
 
     Object.keys(data.wm || {}).forEach(function (k) {
       var parts = k.split(":");
@@ -2556,6 +2587,7 @@
   el("f-date").value = today.getFullYear() + "-" +
     String(today.getMonth() + 1).padStart(2, "0") + "-" +
     String(today.getDate()).padStart(2, "0");
+  syncDateText();
 
   load();
   renderDayContext();
@@ -2566,7 +2598,11 @@
   el("btn-wm-refresh").addEventListener("click", autoFetchWm);
 
   document.addEventListener("input", function (e) {
-    if (e.target.id === "f-date") { load(); renderDayContext(); }
+    if (e.target.id === "f-date") { syncDateText(); load(); renderDayContext(); }
+    if (e.target.id === "f-date-text") {
+      var iso = parseMdy(e.target.value);
+      if (iso) { el("f-date").value = iso; load(); renderDayContext(); }
+    }
     if (e.target.id === "f-name") { renderDayContext(); }
     compute();
   });
@@ -2705,7 +2741,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("input,select,textarea"), function (c) {
       if (c.type === "checkbox") { c.checked = false; }
       else if (c.type === "radio") { /* keep role */ }
-      else if (c.id !== "f-date") { c.value = ""; }
+      else if (c.id !== "f-date" && c.id !== "f-date-text") { c.value = ""; }
     });
     el("saved-note").textContent = "Cleared";
     renderDayContext();
